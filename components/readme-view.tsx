@@ -22,10 +22,15 @@ export function ReadmeView({ analysisResult }: { analysisResult: AnalysisResult 
         const data = await res.json();
         setMarkdown(data.markdown);
       } else {
-        setMarkdown(`# ${analysisResult.projectName}\n\n${analysisResult.summary}`);
+        const err = await res.json().catch(() => ({}));
+        if (err.error?.includes("RESOURCE_EXHAUSTED") || err.error?.includes("quota")) {
+          setMarkdown(`# ${analysisResult.projectName}\n\n> ⚠️ AI generation is temporarily unavailable (free-tier quota exceeded). Please wait and try again later.\n\n---\n\n*Files:* ${analysisResult.statistics.files} | *Folders:* ${analysisResult.statistics.folders} | *Lines of Code:* ${analysisResult.statistics.linesOfCode.toLocaleString()}\n\n*Languages:* ${analysisResult.languages.join(", ")}\n\n*Frameworks:* ${Object.values(analysisResult.frameworks).filter(Boolean).join(", ") || "None detected"}`);
+        } else {
+          setMarkdown(`# ${analysisResult.projectName}\n\nAnalysis complete. AI generation is temporarily unavailable.`);
+        }
       }
     } catch {
-      setMarkdown(`# ${analysisResult.projectName}\n\n${analysisResult.summary}`);
+      setMarkdown(`# ${analysisResult.projectName}\n\nAnalysis complete. AI generation is temporarily unavailable.`);
     } finally {
       setLoading(false);
     }
