@@ -8,29 +8,19 @@ import "prismjs/components/prism-tsx";
 import "prismjs/themes/prism-tomorrow.css";
 import { Copy, Check } from "lucide-react";
 
-const code = `import { useEffect } from 'react';
-import Prism from 'prismjs';
-
-export const CodeViewer = ({ code, language, highlights }) => {
-  useEffect(() => {
-    Prism.highlightAll();
-  }, [code]);
-
-  return (
-    <pre className="line-numbers" data-line={highlights}>
-      <code className={\`language-$\{language}\`}>
-        {code}
-      </code>
-    </pre>
-  );
-};`;
-
-export function CodeBlock() {
+export function CodeBlock({ code, language = "tsx" }: { code: string; language?: string }) {
   const [copied, setCopied] = useState(false);
 
   const highlighted = useMemo(
-    () => Prism.highlight(code, Prism.languages.tsx, "tsx"),
-    [],
+    () => {
+      try {
+        const lang = Prism.languages[language] || Prism.languages.typescript;
+        return Prism.highlight(code, lang, language);
+      } catch {
+        return code;
+      }
+    },
+    [code, language],
   );
 
   const handleCopy = () => {
@@ -47,7 +37,7 @@ export function CodeBlock() {
           <span className="size-2.5 rounded-full bg-yellow-500/50" />
           <span className="size-2.5 rounded-full bg-green-500/50" />
           <span className="ml-2 text-[10px] font-mono tracking-wider text-white/30">
-            TypeScript / React
+            {language}
           </span>
         </div>
         <button
@@ -60,7 +50,7 @@ export function CodeBlock() {
       </div>
       <pre className="overflow-x-auto p-5 text-xs leading-relaxed">
         <code
-          className="language-tsx"
+          className={`language-${language}`}
           dangerouslySetInnerHTML={{ __html: highlighted }}
         />
       </pre>

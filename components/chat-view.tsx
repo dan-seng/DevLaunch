@@ -2,13 +2,6 @@
 
 import { FormEvent } from "react";
 import { Plus, Zap, ThumbsUp, ThumbsDown, RefreshCw, Paperclip, Code, Mic, ArrowUp } from "lucide-react";
-import { CodeBlock } from "./code-block";
-
-const chatThreads = [
-  { name: "Refactor Auth Service", time: "2m ago", preview: "How can I implement JWT rotation safely?", active: true },
-  { name: "Tailwind Config Fix", time: "1h ago", preview: "The dark mode class isn't persisting on reload.", active: false },
-  { name: "Dockerize Node App", time: "Yesterday", preview: "Help me optimize the multi-stage build.", active: false },
-];
 
 export function ChatView({
   messages,
@@ -31,37 +24,20 @@ export function ChatView({
               <span>New Conversation</span>
             </button>
           </div>
-          <div className="flex-1 space-y-0.5 overflow-y-auto p-2">
-            <div className="px-3 py-3 text-[10px] font-mono uppercase tracking-[0.2em] text-white/30">
-              Recent Threads
-            </div>
-            {chatThreads.map((thread) => (
-              <button
-                key={thread.name}
-                className={`block w-full rounded-lg px-3 py-3 text-left transition-all ${
-                  thread.active
-                    ? "border-l-2 border-white bg-white/[0.06]"
-                    : "border-l-2 border-transparent hover:bg-white/[0.03]"
-                }`}
-              >
-                <div className="mb-0.5 flex items-start justify-between">
-                  <span className="truncate text-sm font-medium text-white/90">
-                    {thread.name}
-                  </span>
-                  <span className="shrink-0 text-[10px] text-white/30 font-mono">
-                    {thread.time}
-                  </span>
-                </div>
-                <p className="line-clamp-1 text-xs text-white/40">
-                  {thread.preview}
-                </p>
-              </button>
-            ))}
+          <div className="flex items-center justify-center flex-1 p-6">
+            <p className="text-center text-xs text-white/20 font-mono">
+              Thread history coming soon
+            </p>
           </div>
         </div>
 
         <div className="flex flex-1 flex-col bg-background min-w-0">
           <div className="flex-1 space-y-6 overflow-y-auto px-8 py-8">
+            {messages.length === 0 ? (
+              <div className="flex h-full items-center justify-center">
+                <p className="text-sm text-white/20 font-mono">Ask a question about the repository.</p>
+              </div>
+            ) : null}
             {messages.map((msg, i) => (
               <div key={i} className={`flex ${msg.from === "You" ? "justify-end" : "justify-start"} group`}>
                 <div className={msg.from === "You" ? "max-w-[80%]" : "max-w-[90%] w-full"}>
@@ -76,7 +52,6 @@ export function ChatView({
                     <span className={`text-xs ${msg.from === "AI" ? "font-semibold uppercase tracking-wider text-white/70" : "font-semibold text-white/70"}`}>
                       {msg.from === "AI" ? "DevLaunch AI" : "You"}
                     </span>
-                    <span className="text-[10px] font-mono text-white/20">14:23 PM</span>
                   </div>
                   {msg.from === "You" ? (
                     <div className="rounded-2xl rounded-tr-sm border border-white/[0.08] bg-white px-5 py-3.5 text-sm text-black shadow-lg">
@@ -84,15 +59,7 @@ export function ChatView({
                     </div>
                   ) : (
                     <div className="rounded-2xl rounded-tl-sm border border-white/[0.06] bg-white/[0.03] px-6 py-5 text-sm text-white/90 shadow-xl">
-                      <div className="space-y-4">
-                        <p className="leading-relaxed">{msg.text}</p>
-                        {i === 0 && <CodeBlock />}
-                        <ul className="list-disc space-y-2 pl-5 text-white/50">
-                          <li><strong className="text-white/80">Performance:</strong> Memoize the highlighted output to prevent re-renders on large files.</li>
-                          <li><strong className="text-white/80">Accessibility:</strong> Ensure contrast ratios meet WCAG 2.1 AA standards for code tokens.</li>
-                          <li><strong className="text-white/80">Theming:</strong> Synchronize the highlighter theme with your DevLaunch monochrome config.</li>
-                        </ul>
-                      </div>
+                      <p className="leading-relaxed whitespace-pre-wrap">{msg.text}</p>
                     </div>
                   )}
                   {msg.from === "AI" && (
