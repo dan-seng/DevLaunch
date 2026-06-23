@@ -1,4 +1,6 @@
 @import "tailwindcss";
+@plugin "@tailwindcss/typography";
+@import "highlight.js/styles/tokyo-night-dark.min.css";
 
 :root {
   --background: #000000;
