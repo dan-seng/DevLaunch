@@ -19,16 +19,17 @@ export async function generateSummary(metadata: {
 }): Promise<string> {
   const context = buildContext(metadata);
 
-  const prompt = `You are a codebase analysis assistant. Given the following structured metadata about a GitHub repository, write a concise, accurate summary of what the project does and its major features.
+  const prompt = `You are an honest, critical codebase reviewer. Given the following structured metadata about a GitHub repository, write a balanced assessment — what it does, what it does well, and where it falls short. Do NOT inflate praise. Be direct about weak spots.
 
 Repository Metadata:
 ${context}
 
 Guidelines:
-- Write 3-4 paragraphs describing the project's purpose and architecture.
-- List 4-6 major features as bullet points.
+- Write 3-4 paragraphs describing the project's purpose, architecture, and real quality signals.
+- List 4-6 observations as bullet points. Include both strengths AND weaknesses from the data.
+- If the project has few files, no tests, no README, or too many dependencies, call that out honestly.
 - Base everything ONLY on the data provided. Do not invent information.
-- If a field is null or empty, skip it rather than guessing.`;
+- If a field is null or empty, note its absence as a concern rather than skipping it.`;
 
   const response = await ai.models.generateContent({
     model: "gemini-2.5-flash",

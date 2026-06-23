@@ -13,15 +13,18 @@ interface DetectionRule {
 }
 
 const RULES: DetectionRule[] = [
-  // Frontend
+  // Frontend — specific frameworks first so they win over generic ones
+  { pattern: /next\.config/i, framework: "Next.js", category: "frontend" },
+  { pattern: /"next"/i, framework: "Next.js", category: "frontend" },
+  { pattern: /nuxt\.config/i, framework: "Nuxt", category: "frontend" },
+  { pattern: /"nuxt"/i, framework: "Nuxt", category: "frontend" },
+  { pattern: /"@remix-run\/react"/i, framework: "Remix", category: "frontend" },
+  { pattern: /"gatsby"/i, framework: "Gatsby", category: "frontend" },
+  { pattern: /vite\.config/i, framework: "Vite", category: "frontend" },
+  { pattern: /"@angular\/core"/i, framework: "Angular", category: "frontend" },
   { pattern: /"react"/i, framework: "React", category: "frontend" },
   { pattern: /"vue"/i, framework: "Vue", category: "frontend" },
-  { pattern: /"@angular\/core"/i, framework: "Angular", category: "frontend" },
   { pattern: /"svelte"/i, framework: "Svelte", category: "frontend" },
-  { pattern: /"next"/i, framework: "Next.js", category: "frontend" },
-  { pattern: /next\.config/i, framework: "Next.js", category: "frontend" },
-  { pattern: /nuxt\.config/i, framework: "Nuxt", category: "frontend" },
-  { pattern: /vite\.config/i, framework: "Vite", category: "frontend" },
 
   // Backend
   { pattern: /"express"/i, framework: "Express", category: "backend" },

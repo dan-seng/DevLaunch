@@ -114,18 +114,49 @@ function findDependencies(rootPath: string): string[] {
 
 function computeInsights(structure: FileNode[], deps: string[]): Insights {
   const { files, folders } = countFiles(structure);
-  const hasReadme = deps.length > 0;
 
-  const health = Math.min(100, Math.round(
-    70 + (files > 0 ? 10 : 0) + (folders > 0 ? 5 : 0) + (hasReadme ? 10 : 0) + Math.min(deps.length, 5)
+  let hasTests = false;
+  let hasReadme = false;
+  const walk = (nodes: FileNode[]) => {
+    for (const n of nodes) {
+      if (n.type === "file") {
+        const lower = n.name.toLowerCase();
+        if (/\.(test|spec|e2e)\./.test(lower) || lower.includes("__tests__") || lower === "jest.config" || lower === "vitest.config") hasTests = true;
+        if (/^readme/i.test(lower)) hasReadme = true;
+      }
+      if (n.children) walk(n.children);
+    }
+  };
+  walk(structure);
+
+  const health = Math.min(100, Math.max(10, Math.round(
+    50
+    + (hasReadme ? 15 : -10)
+    + (hasTests ? 15 : -10)
+    + (files >= 5 && files <= 100 ? 15 : files < 3 ? -15 : 5)
+    + (folders >= 2 ? 5 : -5)
+    + (deps.length >= 3 && deps.length <= 30 ? 10 : deps.length > 50 ? -10 : deps.length > 0 ? 3 : -10)
+  )));
+
+  const maintainability = Math.min(100, Math.max(10, Math.round(
+    health
+    + (hasTests ? 10 : -10)
+    + (deps.length <= 30 ? 5 : -10)
+    + (files >= 3 && files <= 200 ? 5 : -10)
+  )));
+
+  const documentation = Math.min(100, Math.max(10,
+    hasReadme ? Math.round(health * 0.85) : Math.round(health * 0.35)
   ));
 
-  return {
-    health,
-    maintainability: Math.min(100, health - Math.round(Math.random() * 10)),
-    documentation: hasReadme ? Math.min(100, health + 5) : Math.min(100, health - 10),
-    architecture: Math.min(100, health - Math.round(Math.random() * 5)),
-  };
+  const architecture = Math.min(100, Math.max(10, Math.round(
+    health
+    + (folders >= 2 ? 5 : -5)
+    + (deps.length <= 30 ? 5 : -5)
+    + (files >= 3 && files <= 150 ? 5 : -5)
+  )));
+
+  return { health, maintainability, documentation, architecture };
 }
 
 function collectFilePaths(nodes: FileNode[], paths: string[]) {
