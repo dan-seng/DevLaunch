@@ -36,7 +36,7 @@ export function SummaryView() {
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-[2fr_1fr]">
         <GlassPanel className="border border-outline-variant overflow-hidden">
           <div className="flex items-center justify-between border-b border-outline-variant bg-surface-container-high px-6 py-3">
-            <span className="text-xs font-bold uppercase tracking-widest text-on-surface-variant font-mono-label">
+            <span className="text-xs font-bold uppercase tracking-widest text-on-surface-variant font-mono">
               Generated Markdown
             </span>
             <Copy size={16} className="cursor-pointer text-on-surface-variant/40 transition-colors hover:text-primary" />
@@ -141,14 +141,14 @@ export function SummaryView() {
           </GlassPanel>
 
           <GlassPanel className="border border-outline-variant p-6">
-            <h5 className="mb-4 text-xs font-bold uppercase tracking-widest text-on-surface-variant font-mono-label">
+            <h5 className="mb-4 text-xs font-bold uppercase tracking-widest text-on-surface-variant font-mono">
               Detected Tech Stack
             </h5>
             <div className="flex flex-wrap gap-2">
               {["Rust", "React", "TypeScript", "gRPC", "ScyllaDB", "Docker", "Kubernetes"].map((tech) => (
                 <span
                   key={tech}
-                    className="rounded-full border border-outline bg-surface-container-highest px-3 py-1 text-xs text-primary font-mono-label"
+                    className="rounded-full border border-outline bg-surface-container-highest px-3 py-1 text-xs text-primary font-mono"
                 >
                   {tech}
                 </span>
@@ -160,7 +160,7 @@ export function SummaryView() {
             <div className="absolute -bottom-4 -right-4 opacity-5">
               <Activity size={120} />
             </div>
-            <h5 className="mb-4 text-xs font-bold uppercase tracking-widest text-on-surface-variant font-mono-label">
+            <h5 className="mb-4 text-xs font-bold uppercase tracking-widest text-on-surface-variant font-mono">
               Analysis Confidence
             </h5>
             <div className="space-y-4">

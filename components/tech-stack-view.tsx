@@ -212,7 +212,7 @@ export function TechStackView() {
             (tool) => (
               <span
                 key={tool}
-                className="rounded-full border border-zinc-800 bg-zinc-900 px-3 py-1.5 text-xs text-on-surface font-mono-label"
+                className="rounded-full border border-zinc-800 bg-zinc-900 px-3 py-1.5 text-xs text-on-surface font-mono"
               >
                 {tool}
               </span>

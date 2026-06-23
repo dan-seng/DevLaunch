@@ -15,12 +15,12 @@ export function AnalyzingScreen({ progress, step }: { progress: number; step: nu
             <LogoMark />
           </div>
           <h1 className="text-2xl font-bold tracking-tight text-on-surface">DevLaunch</h1>
-          <p className="text-sm text-on-surface-variant/70 font-mono-label">AI Analysis Engine v2.4.0</p>
+          <p className="text-sm text-on-surface-variant/70 font-mono">AI Analysis Engine v2.4.0</p>
         </div>
         <div className="overflow-hidden rounded-xl border border-outline-variant bg-surface-container-high/40 shadow-2xl backdrop-blur-xl">
           <div className="flex items-end justify-between border-b border-outline-variant bg-surface-container-high/60 p-5">
             <div>
-              <span className="text-xs uppercase tracking-widest text-on-surface-variant font-mono-label">Operation Status</span>
+              <span className="text-xs uppercase tracking-widest text-on-surface-variant font-mono">Operation Status</span>
               <h2 className="text-2xl font-bold text-on-surface">Analyzing Project...</h2>
             </div>
             <span className="text-2xl font-black text-white">{progress}%</span>
@@ -69,12 +69,12 @@ export function AnalyzingScreen({ progress, step }: { progress: number; step: nu
           <div className="border-t border-outline-variant bg-black px-6 py-4">
             <div className="mb-1 flex items-center gap-2">
               <div className="size-2 animate-pulse rounded-full bg-white" />
-              <span className="text-[10px] uppercase tracking-tighter text-on-surface-variant/60 font-mono-label">
+              <span className="text-[10px] uppercase tracking-tighter text-on-surface-variant/60 font-mono">
                 Terminal Output
               </span>
             </div>
             <div className="overflow-hidden whitespace-nowrap font-mono text-xs text-on-surface/70">
-              <span className="text-on-surface-variant/40 font-mono-label">$</span> scan --dir ./src --deep <br />
+              <span className="text-on-surface-variant/40 font-mono">$</span> scan --dir ./src --deep <br />
               <span className="text-on-surface">Found:</span> React v18.2, TailwindCSS v3.4, TypeScript...
             </div>
           </div>

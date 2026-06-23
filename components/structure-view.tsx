@@ -31,7 +31,7 @@ export function StructureView() {
     <div className="flex h-[calc(100vh-8rem)] overflow-hidden rounded-xl border border-outline-variant bg-surface-container-low">
       <div className="flex w-[340px] shrink-0 flex-col border-r border-outline-variant">
         <div className="flex items-center justify-between border-b border-outline-variant/50 p-4">
-          <span className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant font-mono-label/60">Explorer</span>
+          <span className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant font-mono">Explorer</span>
           <div className="flex gap-2 text-on-surface-variant">
             <FolderPlus size={16} className="cursor-pointer hover:text-primary" />
             <FilePlus size={16} className="cursor-pointer hover:text-primary" />
@@ -39,7 +39,7 @@ export function StructureView() {
             <Minimize2 size={16} className="cursor-pointer hover:text-primary" />
           </div>
         </div>
-        <div className="flex-1 overflow-y-auto py-2 font-mono-label text-xs">
+        <div className="flex-1 overflow-y-auto py-2 font-mono text-xs">
           <div className="flex cursor-pointer items-center px-4 py-1 text-on-surface hover:bg-surface-variant/30">
             <ChevronDown size={14} className="mr-1 text-primary" />
             <FolderOpen size={14} className="mr-2 text-on-surface-variant" />
@@ -121,7 +121,7 @@ export function StructureView() {
                   key={label}
                   className="group cursor-pointer rounded-xl border border-white/5 bg-surface-container/20 p-4 transition-colors hover:border-white/20"
                 >
-                  <div className="mb-1 text-[10px] font-bold uppercase tracking-widest text-on-surface-variant font-mono-label transition-colors group-hover:text-primary">
+                  <div className="mb-1 text-[10px] font-bold uppercase tracking-widest text-on-surface-variant font-mono transition-colors group-hover:text-primary">
                     {label}
                   </div>
                   <div className="text-2xl font-bold text-white">{value}</div>
@@ -137,18 +137,18 @@ export function StructureView() {
           <div className="flex items-start justify-between border-b border-outline-variant/50 bg-surface-container-high/30 p-6">
             <div className="flex flex-col">
               <span className="mb-1 text-[10px] font-bold uppercase tracking-widest text-primary">File Inspector</span>
-              <h3 className="max-w-[260px] truncate font-mono-label text-xl font-bold text-white">{selectedFile.name}</h3>
+              <h3 className="max-w-[260px] truncate font-mono text-xl font-bold text-white">{selectedFile.name}</h3>
             </div>
             <X size={16} className="cursor-pointer text-on-surface-variant transition-colors hover:text-white" />
           </div>
           <div className="flex-1 space-y-10 overflow-y-auto p-6">
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant font-mono-label">Size</label>
+                <label className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant font-mono">Size</label>
                 <p className="font-mono text-sm text-white">{selectedFile.size}</p>
               </div>
               <div className="text-right">
-                <label className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant font-mono-label">Modified</label>
+                <label className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant font-mono">Modified</label>
                 <p className="font-mono text-sm text-white">{selectedFile.mod}</p>
               </div>
             </div>
@@ -156,7 +156,7 @@ export function StructureView() {
             <div className="space-y-4">
               <div className="flex items-center gap-2">
                 <Sparkles size={16} className="text-primary" />
-                <span className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant font-mono-label">AI Summary</span>
+                <span className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant font-mono">AI Summary</span>
               </div>
               <div className="rounded-xl border border-white/10 bg-black/40 p-5">
                 <p className="text-sm italic leading-relaxed text-on-surface-variant">
@@ -166,7 +166,7 @@ export function StructureView() {
             </div>
 
             <div className="space-y-4">
-              <label className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant font-mono-label">
+              <label className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant font-mono">
                 Core Imports
               </label>
               <div className="space-y-2">
@@ -177,7 +177,7 @@ export function StructureView() {
                 ].map(([name, ver]) => (
                   <div
                     key={name}
-                    className="flex items-center justify-between rounded-lg border border-white/5 bg-white/5 p-3 font-mono-label text-xs"
+                    className="flex items-center justify-between rounded-lg border border-white/5 bg-white/5 p-3 font-mono text-xs"
                   >
                     <span className="text-on-surface">{name}</span>
                     <span className="text-on-surface-variant">{ver}</span>

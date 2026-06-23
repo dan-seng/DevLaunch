@@ -1,31 +1,31 @@
 "use client";
 
-import { Menu, ChevronRight, Search, Bell, Upload } from "lucide-react";
+import { Menu, ChevronRight, Search, Bell, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { DashboardView } from "@/data/types";
 
 export function TopBar({ activeView, onNewScan }: { activeView: DashboardView; onNewScan: () => void }) {
   return (
-    <header className="sticky top-0 z-40 flex h-14 items-center justify-between border-b border-outline-variant bg-black/80 px-6 backdrop-blur-md">
+    <header className="sticky top-0 z-40 flex h-14 items-center justify-between border-b border-white/[0.06] bg-background/80 px-6 backdrop-blur-md">
       <div className="flex items-center gap-4">
-        <Menu size={20} className="text-on-surface-variant" />
-        <div className="flex items-center gap-2 text-sm text-on-surface-variant">
+        <Menu size={18} className="text-white/40" />
+        <div className="flex items-center gap-2 text-sm text-white/40">
           <span>Dashboard</span>
-          <ChevronRight size={14} />
-          <span className="font-semibold text-on-surface">{activeView}</span>
+          <ChevronRight size={12} />
+          <span className="font-semibold text-white">{activeView}</span>
         </div>
       </div>
-      <div className="flex items-center gap-4">
-        <button className="p-2 text-on-surface-variant transition-all hover:text-primary">
-          <Search size={18} />
+      <div className="flex items-center gap-3">
+        <button className="p-1.5 text-white/40 transition-colors hover:text-white/70">
+          <Search size={16} />
         </button>
-        <button className="relative p-2 text-on-surface-variant transition-all hover:text-primary">
-          <Bell size={18} />
-          <span className="absolute right-2 top-2 size-2 rounded-full bg-white" />
+        <button className="relative p-1.5 text-white/40 transition-colors hover:text-white/70">
+          <Bell size={16} />
+          <span className="absolute right-1.5 top-1.5 size-1.5 rounded-full bg-white" />
         </button>
-        <div className="mx-2 h-6 w-px bg-outline-variant" />
-        <Button variant="ghost" size="sm" onClick={onNewScan}>
-          <Upload size={14} />
+        <div className="mx-1 h-5 w-px bg-white/[0.06]" />
+        <Button variant="ghost" size="sm" onClick={onNewScan} className="text-xs">
+          <RefreshCw size={13} />
           New Scan
         </Button>
       </div>

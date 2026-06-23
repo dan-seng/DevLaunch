@@ -8,7 +8,7 @@ export function ReadmeView() {
   return (
     <GlassPanel className="border border-outline-variant">
       <div className="flex flex-col items-start justify-between gap-4 border-b border-outline-variant bg-surface-container-high px-6 py-3 md:flex-row md:items-center">
-        <span className="text-xs font-bold uppercase tracking-widest text-on-surface-variant font-mono-label">
+        <span className="text-xs font-bold uppercase tracking-widest text-on-surface-variant font-mono">
           Generated Markdown
         </span>
         <div className="flex gap-2">
