@@ -8,13 +8,24 @@ import {
   Package,
   RefreshCw,
   CheckCircle,
-  ChevronRight,
   FolderArchive,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { GlassPanel } from "./glass-panel";
+import type { AnalysisResult } from "@/lib/analysis-types";
 
-export function InsightsView() {
+export function InsightsView({ analysisResult }: { analysisResult: AnalysisResult }) {
+  const { insights, statistics, dependencies, entryPoints, structure } = analysisResult;
+
+  const topFolders = structure
+    .filter((n) => n.type === "folder")
+    .slice(0, 5)
+    .map((n) => n.name);
+
+  const healthColor = insights.health >= 80 ? "text-primary" : insights.health >= 50 ? "text-on-surface" : "text-error";
+  const healthLabel = insights.health >= 80 ? "Optimal" : insights.health >= 50 ? "Fair" : "Needs Work";
+  const circumference = 2 * Math.PI * 70;
+  const offset = circumference - (insights.health / 100) * circumference;
+
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
@@ -26,25 +37,28 @@ export function InsightsView() {
             </div>
             <h3 className="mb-1 text-3xl font-black">Overall Health Score</h3>
             <p className="mb-6 text-sm text-on-surface-variant">
-              Aggregate index of codebase quality, security, and velocity.
+              Aggregate index of codebase quality based on structural analysis.
             </p>
           </div>
           <div className="flex items-center justify-center py-4">
             <div className="relative flex size-40 items-center justify-center">
               <svg className="size-full -rotate-90">
                 <circle cx="80" cy="80" r="70" fill="transparent" stroke="currentColor" strokeWidth="8" className="text-surface-variant" />
-                <circle cx="80" cy="80" r="70" fill="transparent" stroke="currentColor" strokeWidth="8" strokeDasharray="440" strokeDashoffset="88" strokeLinecap="round" className="text-primary" />
+                <circle
+                  cx="80" cy="80" r="70" fill="transparent" stroke="currentColor" strokeWidth="8"
+                  strokeDasharray={circumference} strokeDashoffset={offset} strokeLinecap="round" className="text-primary"
+                />
               </svg>
               <div className="absolute flex flex-col items-center">
-                <span className="text-5xl font-black leading-none">82</span>
-                <span className="text-xs text-on-surface-variant">Optimal</span>
+                <span className={`text-5xl font-black leading-none ${healthColor}`}>{insights.health}</span>
+                <span className="text-xs text-on-surface-variant">{healthLabel}</span>
               </div>
             </div>
           </div>
           <div className="border-t border-outline-variant/30 pt-4">
             <div className="flex justify-between text-xs">
-              <span className="text-on-surface-variant">VS PREVIOUS SPRINT</span>
-              <span className="font-bold text-primary">+4.2%</span>
+              <span className="text-on-surface-variant">ARCHITECTURE SCORE</span>
+              <span className="font-bold text-primary">{insights.architecture}/100</span>
             </div>
           </div>
         </GlassPanel>
@@ -53,28 +67,19 @@ export function InsightsView() {
           <div className="mb-6 flex items-center justify-between">
             <div>
               <p className="text-xs uppercase text-on-surface-variant">Documentation Quality</p>
-              <h4 className="text-2xl font-bold text-on-surface">High</h4>
+              <h4 className="text-2xl font-bold text-on-surface">{insights.documentation >= 70 ? "Good" : "Needs Work"}</h4>
             </div>
             <FileText size={20} className="text-primary" />
           </div>
           <div className="space-y-4">
             <div>
               <div className="mb-1 flex justify-between text-xs">
-                <span className="text-on-surface-variant">Docstring Coverage</span>
-                <span className="text-on-surface">94%</span>
+                <span className="text-on-surface-variant">Score</span>
+                <span className="text-on-surface">{insights.documentation}%</span>
               </div>
               <div className="h-1.5 w-full overflow-hidden rounded-full bg-surface-variant">
-                <div className="h-full w-[94%] rounded-full bg-primary" />
+                <div className="h-full rounded-full bg-primary" style={{ width: `${insights.documentation}%` }} />
               </div>
-            </div>
-            <div className="flex h-10 items-end gap-[2px]">
-              {[20, 35, 15, 40, 25, 60, 45, 50, 70, 65].map((val, i) => (
-                <div
-                  key={i}
-                  className="w-1 rounded-t bg-white transition-all"
-                  style={{ height: `${val}%` }}
-                />
-              ))}
             </div>
           </div>
         </GlassPanel>
@@ -83,23 +88,17 @@ export function InsightsView() {
           <div className="mb-6 flex items-center justify-between">
             <div>
               <p className="text-xs uppercase text-on-surface-variant">Maintainability</p>
-              <h4 className="text-2xl font-bold text-on-surface">8.4 / 10</h4>
+              <h4 className="text-2xl font-bold text-on-surface">{insights.maintainability} / 100</h4>
             </div>
             <GitBranch size={20} className="text-on-surface-variant" />
           </div>
           <div className="mb-4 flex gap-2">
-            {["DRY PATTERN", "LOW COMPLEXITY"].map((tag) => (
-              <span
-                key={tag}
-                className="rounded border border-outline-variant bg-surface-variant px-2 py-0.5 text-[10px] font-bold text-on-surface"
-              >
-                {tag}
-              </span>
-            ))}
+            <span className="rounded border border-outline-variant bg-surface-variant px-2 py-0.5 text-[10px] font-bold text-on-surface">
+              {insights.maintainability >= 70 ? "HEALTHY" : "MONITOR"}
+            </span>
           </div>
           <p className="text-xs leading-relaxed text-on-surface-variant">
-            Cognitive complexity is below threshold. Refactor recommended for{" "}
-            <code className="rounded bg-surface-variant px-1 text-on-surface">auth_handler.py</code>.
+            Based on {statistics.files} files across {statistics.folders} directories with {statistics.linesOfCode.toLocaleString()} lines of code.
           </p>
         </GlassPanel>
 
@@ -110,42 +109,36 @@ export function InsightsView() {
                 <Shield size={20} className="text-error" />
               </div>
               <div>
-                <h4 className="text-2xl font-bold text-on-surface">Security Vulnerabilities</h4>
-                <p className="text-xs text-on-surface-variant">3 Critical issues detected in local scope</p>
+                <h4 className="text-2xl font-bold text-on-surface">Dependencies</h4>
+                <p className="text-xs text-on-surface-variant">{dependencies.length} packages detected</p>
               </div>
             </div>
-            <Button variant="outline" size="sm">
-              View Report
-            </Button>
           </div>
           <div className="mt-4 space-y-2">
-            {[
-              { title: "Hardcoded API Key in .env.example", severity: "Critical", color: "text-error", dot: "bg-error" },
-              { title: "Outdated 'axios' dependency (v0.21.1)", severity: "Medium", color: "text-on-surface-variant", dot: "bg-on-surface-variant" },
-            ].map((item) => (
+            {dependencies.slice(0, 6).map((dep) => (
               <div
-                key={item.title}
-                className={`flex items-center justify-between rounded-lg border p-3 ${
-                  item.severity === "Critical" ? "border-error/40 bg-surface-container-low" : "border-outline-variant bg-surface-container-low"
-                }`}
+                key={dep}
+                className="flex items-center justify-between rounded-lg border border-outline-variant bg-surface-container-low p-3"
               >
                 <div className="flex items-center gap-3">
-                  <span className={`size-2 rounded-full ${item.dot} ${item.severity === "Critical" ? "animate-pulse" : ""}`} />
-                  <span className="font-mono text-xs">{item.title}</span>
+                  <span className="size-2 rounded-full bg-on-surface-variant" />
+                  <span className="font-mono text-xs">{dep}</span>
                 </div>
-                <span className={`text-[10px] font-bold uppercase ${item.color}`}>{item.severity}</span>
               </div>
             ))}
+            {dependencies.length > 6 ? (
+              <p className="text-xs text-on-surface-variant pt-2">+{dependencies.length - 6} more packages</p>
+            ) : null}
           </div>
         </GlassPanel>
 
         <GlassPanel className="col-span-1 rounded-xl border border-outline-variant p-6 lg:col-span-5">
-          <h4 className="mb-4 text-xs uppercase text-on-surface-variant">Dependency Health</h4>
+          <h4 className="mb-4 text-xs uppercase text-on-surface-variant">Repository Stats</h4>
           <div className="space-y-4">
             {[
-              { label: "Total Packages", value: "142", icon: <Package size={16} /> },
-              { label: "Outdated", value: "12", icon: <RefreshCw size={16} /> },
-              { label: "Trusted Authors", value: "89%", icon: <CheckCircle size={16} className="text-primary" /> },
+              { label: "Total Files", value: `${statistics.files}`, icon: <Package size={16} /> },
+              { label: "Lines of Code", value: `${statistics.linesOfCode.toLocaleString()}`, icon: <RefreshCw size={16} /> },
+              { label: "Entry Points", value: `${entryPoints.length}`, icon: <CheckCircle size={16} className="text-primary" /> },
             ].map((item) => (
               <div key={item.label} className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
@@ -156,68 +149,37 @@ export function InsightsView() {
               </div>
             ))}
           </div>
-          <div className="mt-6 flex justify-center border-t border-outline-variant/30 pt-6">
-            <button className="text-xs font-bold uppercase tracking-widest text-primary hover:underline">
-              Run Audit Fix
-            </button>
-          </div>
         </GlassPanel>
 
         <GlassPanel className="col-span-1 rounded-xl border border-outline-variant p-6 lg:col-span-12">
           <div className="mb-8 flex flex-col justify-between gap-4 md:flex-row md:items-center">
             <div>
-              <h4 className="text-2xl font-bold text-on-surface">Structural Integrity</h4>
-              <p className="text-xs text-on-surface-variant">Visualizing repository depth and module coupling</p>
-            </div>
-            <div className="flex gap-4">
-              {[
-                ["Max Nesting", "5 Levels"],
-                ["Coupling Factor", "0.42"],
-              ].map(([label, value]) => (
-                <div key={label} className="text-right">
-                  <p className="text-[10px] uppercase text-on-surface-variant">{label}</p>
-                  <p className="font-bold">{value}</p>
-                </div>
-              ))}
+              <h4 className="text-2xl font-bold text-on-surface">Structural Overview</h4>
+              <p className="text-xs text-on-surface-variant">Top-level directories in this repository</p>
             </div>
           </div>
           <div className="grid grid-cols-1 gap-6 md:grid-cols-4">
             <div className="rounded-lg border border-outline-variant/30 bg-surface-container-low p-4">
-              <p className="mb-2 text-xs text-on-surface-variant">Folder Balance</p>
-              <div className="flex h-20 items-end gap-1">
-                {[40, 70, 100, 55, 20].map((h, i) => (
-                  <div
-                    key={i}
-                    className="w-full rounded-t"
-                    style={{
-                      height: `${h}%`,
-                      backgroundColor: i === 2 ? "#ffffff" : i % 2 === 0 ? "#404040" : "#8e9192",
-                    }}
-                  />
-                ))}
-              </div>
-              <p className="mt-2 text-center text-[10px] text-on-surface-variant">Module Distribution</p>
+              <p className="mb-2 text-xs text-on-surface-variant">Folder Count</p>
+              <p className="text-2xl font-bold">{statistics.folders}</p>
             </div>
             <div className="col-span-3 space-y-4">
-              {[
-                { name: "src/core", desc: "High Stability • 12 dependencies" },
-                { name: "src/utils", desc: "Utility bloat detected • 45 functions" },
-                { name: "src/services", desc: "Optimal coupling • 8 dependencies" },
-              ].map((folder) => (
+              {topFolders.map((name) => (
                 <div
-                  key={folder.name}
+                  key={name}
                   className="flex cursor-pointer items-center justify-between rounded border border-transparent p-3 transition-all hover:border-outline-variant/30 hover:bg-surface-variant/20"
                 >
                   <div className="flex items-center gap-4">
                     <FolderArchive size={18} className="text-on-surface-variant" />
                     <div>
-                      <p className="text-sm font-bold">{folder.name}</p>
-                      <p className="text-[10px] text-on-surface-variant">{folder.desc}</p>
+                      <p className="text-sm font-bold font-mono">{name}</p>
                     </div>
                   </div>
-                  <ChevronRight size={16} className="text-on-surface-variant" />
                 </div>
               ))}
+              {!topFolders.length ? (
+                <p className="text-xs text-on-surface-variant">No top-level folders detected</p>
+              ) : null}
             </div>
           </div>
         </GlassPanel>

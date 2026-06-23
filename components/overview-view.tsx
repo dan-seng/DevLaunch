@@ -1,5 +1,6 @@
 "use client";
 
+import type { AnalysisResult } from "@/lib/analysis-types";
 import {
   Activity,
   TrendingUp,
@@ -17,13 +18,27 @@ import { GlassPanel } from "./glass-panel";
 import { Badge } from "@/components/ui/badge";
 import type { DashboardView } from "@/data/types";
 
-export function OverviewView({ setActiveView }: { setActiveView: (view: DashboardView) => void }) {
-  const fileDist = [
-    ["TypeScript (.ts/tsx)", "74", "#ffffff"],
-    ["Styles (.css/scss)", "12", "#a3a3a3"],
-    ["Documentation (.md)", "8", "#737373"],
-    ["Other", "6", "#404040"],
-  ];
+export function OverviewView({
+  analysisResult,
+  setActiveView,
+}: {
+  analysisResult: AnalysisResult;
+  setActiveView: (view: DashboardView) => void;
+}) {
+  const { projectName, summary, frameworks, languages, statistics, languageDistribution, insights } = analysisResult;
+
+  const mainLang = languages[0] || "Unknown";
+  const frontendFramework = frameworks.frontend || "—";
+  const backendFramework = frameworks.backend || "—";
+
+  const totalWeight = languageDistribution.reduce((sum, l) => sum + l.weight, 0);
+  const colors = ["#ffffff", "#a3a3a3", "#737373", "#404040"];
+  const fileDist = languageDistribution.slice(0, 4).map((lang, i) => [
+    lang.name,
+    `${totalWeight > 0 ? Math.round((lang.weight / totalWeight) * 100) : 0}`,
+    colors[i] || "#404040",
+  ] as [string, string, string]);
+
   return (
     <div className="space-y-6">
       <div className="grid gap-4 md:grid-cols-4">
@@ -34,40 +49,40 @@ export function OverviewView({ setActiveView }: { setActiveView: (view: Dashboar
           <div>
             <p className="mb-1 text-xs text-on-surface-variant">Project Score</p>
             <h2 className="text-5xl font-black text-primary">
-              94<span className="text-xl text-on-surface-variant">/100</span>
+              {insights.health}<span className="text-xl text-on-surface-variant">/100</span>
             </h2>
             <p className="mt-2 flex items-center gap-1 text-xs text-on-surface">
               <TrendingUp size={14} />
-              +3 points from last week
+              {insights.maintainability} maintainability
             </p>
           </div>
           <svg className="size-24" viewBox="0 0 36 36">
             <path className="stroke-current text-white/10" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" strokeWidth="3" />
-            <path className="stroke-current text-white" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" strokeDasharray="94, 100" strokeLinecap="round" strokeWidth="3" />
+            <path className="stroke-current text-white" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" strokeDasharray={`${insights.health}, 100`} strokeLinecap="round" strokeWidth="3" />
           </svg>
         </GlassPanel>
         <GlassPanel className="flex flex-col justify-between p-6">
           <div>
             <p className="mb-1 text-xs text-on-surface-variant">Size & Density</p>
-            <h3 className="text-2xl font-bold text-on-surface">14.2 MB</h3>
+            <h3 className="text-2xl font-bold text-on-surface">{statistics.totalSize ? `${(statistics.totalSize / 1024 / 1024).toFixed(1)} MB` : `${statistics.files} files`}</h3>
           </div>
           <div className="flex items-end justify-between">
             <div className="space-y-0.5">
               <p className="text-[11px] uppercase tracking-wider text-on-surface-variant">Total Files</p>
-              <p className="text-xs text-white">124 Files</p>
+              <p className="text-xs text-white">{statistics.files} Files</p>
             </div>
             <FolderArchive size={20} className="text-outline-variant" />
           </div>
         </GlassPanel>
         <GlassPanel className="flex flex-col justify-between p-6">
           <div>
-            <p className="mb-1 text-xs text-on-surface-variant">Velocity</p>
-            <h3 className="text-2xl font-bold text-on-surface">2h <span className="text-sm font-normal text-on-surface-variant">ago</span></h3>
+            <p className="mb-1 text-xs text-on-surface-variant">Code Volume</p>
+            <h3 className="text-2xl font-bold text-on-surface">{statistics.linesOfCode.toLocaleString()} <span className="text-sm font-normal text-on-surface-variant">lines</span></h3>
           </div>
           <div className="flex items-end justify-between">
             <div className="space-y-0.5">
-              <p className="text-[11px] uppercase tracking-wider text-on-surface-variant">Last Commit</p>
-              <p className="text-xs text-white">#ae45f9d</p>
+              <p className="text-[11px] uppercase tracking-wider text-on-surface-variant">Folders</p>
+              <p className="text-xs text-white">{statistics.folders} Directories</p>
             </div>
             <Clock size={20} className="text-outline-variant" />
           </div>
@@ -78,13 +93,15 @@ export function OverviewView({ setActiveView }: { setActiveView: (view: Dashboar
         <GlassPanel className="border border-outline-variant p-8">
           <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
             <div>
-              <h3 className="mb-2 text-2xl font-bold text-white">DevLaunch Engine v2</h3>
+              <h3 className="mb-2 text-2xl font-bold text-white">{projectName}</h3>
               <p className="max-w-2xl leading-relaxed text-on-surface-variant">
-                A high-performance AI-driven code analysis tool designed to help developers navigate complex legacy repositories. It generates semantic dependency graphs, automated README documentation, and performance bottleneck insights using multi-modal LLM processing.
+                {summary
+                  ? `${summary.slice(0, 300)}...`
+                  : `${statistics.files} files across ${statistics.folders} directories with ${statistics.linesOfCode.toLocaleString()} lines of code. ${languages.length} languages detected. View the AI Summary tab for a full AI-generated report.`}
               </p>
             </div>
             <div className="flex gap-2">
-              <Badge variant="default" className="border-outline-variant bg-surface-variant uppercase">Production</Badge>
+              <Badge variant="default" className="border-outline-variant bg-surface-variant uppercase">Analyzed</Badge>
               <Badge variant="inverse" className="flex items-center gap-1">
                 <span className="size-1.5 animate-pulse rounded-full bg-black" />
                 Active
@@ -93,10 +110,10 @@ export function OverviewView({ setActiveView }: { setActiveView: (view: Dashboar
           </div>
           <div className="flex flex-wrap items-center gap-4 border-t border-outline-variant pt-6">
             {[
-              ["Main Language", "TypeScript"],
-              ["Framework", "Next.js 16"],
-              ["Backend", "PostgreSQL"],
-              ["Runtime", "Node.js"],
+              ["Main Language", mainLang],
+              ["Frontend", frontendFramework],
+              ["Backend", backendFramework],
+              ["Dependencies", `${analysisResult.dependencies.length}`],
             ].map(([label, value]) => (
               <div key={label as string}>
                 <p className="text-[10px] font-bold uppercase text-on-surface-variant">{label as string}</p>
@@ -110,13 +127,13 @@ export function OverviewView({ setActiveView }: { setActiveView: (view: Dashboar
         </GlassPanel>
 
         <GlassPanel className="border border-outline-variant p-6">
-          <h4 className="mb-4 text-xs uppercase tracking-wider text-on-surface">File Distribution</h4>
+          <h4 className="mb-4 text-xs uppercase tracking-wider text-on-surface">Languages</h4>
           <div className="space-y-4">
             {fileDist.map(([label, value, color]) => (
-              <div key={label as string}>
+              <div key={label}>
                 <div className="mb-1.5 flex justify-between text-[11px]">
-                  <span className="text-on-surface-variant">{label as string}</span>
-                  <span className="text-on-surface">{value as string}%</span>
+                  <span className="text-on-surface-variant">{label}</span>
+                  <span className="text-on-surface">{value}%</span>
                 </div>
                 <div className="h-1.5 w-full overflow-hidden rounded-full bg-surface-variant">
                   <div className="h-full rounded-full" style={{ width: `${value}%`, backgroundColor: color }} />
@@ -146,7 +163,7 @@ export function OverviewView({ setActiveView }: { setActiveView: (view: Dashboar
             >
               <div className="mb-8">{icons[view]}</div>
               <h3 className="text-xl font-bold text-on-surface">{view}</h3>
-              <p className="mt-3 text-sm leading-6 text-on-surface-variant">Open this analysis workspace.</p>
+              <p className="mt-3 text-sm leading-6 text-on-surface-variant">AI-powered insights and documentation for your codebase.</p>
             </button>
           );
         })}
