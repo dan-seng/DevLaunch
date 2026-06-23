@@ -17,17 +17,19 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { LogoMark } from "./logo-mark";
-import { samples } from "@/data/samples";
+
 
 export function LandingPage({
   repoUrl,
   setRepoUrl,
   analyze,
   pickSample,
+  error,
 }: {
   repoUrl: string;
   setRepoUrl: (value: string) => void;
   analyze: (event: FormEvent<HTMLFormElement>) => void;
+  error?: string;
   pickSample: (repo: string) => void;
 }) {
   const logos = [
@@ -165,6 +167,15 @@ export function LandingPage({
               </Button>
             </div>
           </motion.form>
+          {error ? (
+            <motion.p
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mt-3 rounded-lg border border-error/30 bg-error/10 px-4 py-2 text-sm text-error"
+            >
+              {error}
+            </motion.p>
+          ) : null}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -201,49 +212,34 @@ export function LandingPage({
                 analysis/preview
               </span>
             </div>
-            <div className="space-y-2.5 font-mono text-xs leading-relaxed">
+            <div className="space-y-3 font-mono text-xs leading-relaxed">
               <div className="flex">
-                <span className="shrink-0 text-white/25">{">"}</span>
-                <span className="ml-2 text-white/60">scan --repo react --deep</span>
+                <span className="shrink-0 text-white/25">$</span>
+                <span className="ml-2 text-white/40">devlaunch scan https://github.com/user/repo</span>
               </div>
               <div className="flex">
                 <span className="shrink-0 text-white/25">{">"}</span>
-                <span className="ml-2 text-white/70">Framework: React v18.2</span>
+                <span className="ml-2 text-primary">✓</span>
+                <span className="ml-2 text-white/60">Clone complete</span>
               </div>
               <div className="flex">
                 <span className="shrink-0 text-white/25">{">"}</span>
-                <span className="ml-2 text-white/70">Language: TypeScript</span>
+                <span className="ml-2 text-primary">✓</span>
+                <span className="ml-2 text-white/60">Structure scanned</span>
               </div>
               <div className="flex">
                 <span className="shrink-0 text-white/25">{">"}</span>
-                <span className="ml-2 text-white/70">Files: 1,247</span>
+                <span className="ml-2 text-primary">✓</span>
+                <span className="ml-2 text-white/60">Technologies detected</span>
               </div>
               <div className="flex">
                 <span className="shrink-0 text-white/25">{">"}</span>
-                <span className="ml-2 text-[#22D3EE]">Structure: 14 directories</span>
+                <span className="ml-2 text-primary">✓</span>
+                <span className="ml-2 text-white/60">Analysis ready</span>
               </div>
               <div className="mt-3 flex">
                 <span className="shrink-0 text-white/25">$</span>
                 <span className="ml-2 animate-pulse text-white/40">_</span>
-              </div>
-            </div>
-            <div className="mt-5 rounded-lg border border-white/[0.04] bg-white/[0.02] p-3">
-              <div className="mb-1.5 text-[10px] text-white/30">
-                QUICK STATS
-              </div>
-              <div className="grid grid-cols-3 gap-3">
-                {[
-                  { label: "Files", value: "1.2k" },
-                  { label: "Deps", value: "47" },
-                  { label: "Score", value: "89" },
-                ].map((s) => (
-                  <div key={s.label}>
-                    <div className="text-lg font-bold text-white">{s.value}</div>
-                    <div className="text-[9px] tracking-wider text-white/30 font-mono">
-                      {s.label}
-                    </div>
-                  </div>
-                ))}
               </div>
             </div>
           </div>
@@ -281,18 +277,30 @@ export function LandingPage({
           className="mb-12 flex items-center justify-between"
         >
           <h2 className="text-lg font-bold tracking-tight text-white">
-            Featured Repositories
+            How it works
           </h2>
           <div className="mx-6 h-px flex-1 bg-white/[0.04]" />
-          <button className="flex items-center gap-1 text-sm text-white/40 transition-all hover:text-white/70">
-            View all
-            <ArrowRight size={14} />
-          </button>
         </motion.div>
-        <div className="grid gap-5 md:grid-cols-[1.6fr_1fr_1fr]">
-          {samples.slice(0, 3).map((sample, i) => (
-            <motion.button
-              key={sample.repo}
+        <div className="grid gap-5 md:grid-cols-3">
+          {[
+            {
+              step: "01",
+              title: "Enter a repo URL",
+              desc: "Paste any public GitHub repository URL into the input above.",
+            },
+            {
+              step: "02",
+              title: "Automated analysis",
+              desc: "DevLaunch clones, scans, and maps your codebase — structure, technologies, and metrics.",
+            },
+            {
+              step: "03",
+              title: "Explore & understand",
+              desc: "Browse interactive views, chat with your codebase, generate docs and summaries.",
+            },
+          ].map((item, i) => (
+            <motion.div
+              key={item.step}
               initial={{ opacity: 0, y: 24 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, amount: 0.2 }}
@@ -301,44 +309,14 @@ export function LandingPage({
                 delay: i * 0.08,
                 ease: [0.16, 1, 0.3, 1],
               }}
-              onClick={() => pickSample(sample.repo)}
-              className={`group cursor-pointer rounded-2xl border border-white/[0.06] bg-white/[0.02] p-7 text-left transition-all hover:border-white/[0.12] hover:bg-white/[0.04] ${
-                i === 0
-                  ? "md:row-span-2 md:flex md:flex-col md:justify-between"
-                  : ""
-              }`}
+              className="rounded-2xl border border-white/[0.06] bg-white/[0.02] p-7"
             >
-              <div>
-                <div className="mb-4 flex items-start justify-between">
-                  <div className="flex size-11 items-center justify-center rounded-xl bg-white/[0.06] text-white/80">
-                    {sample.icon}
-                  </div>
-                  <span className="rounded-md border border-white/[0.06] bg-white/[0.03] px-2.5 py-1 text-[9px] tracking-wider text-white/40 font-mono">
-                    {sample.stars}
-                  </span>
-                </div>
-                <h3 className="mb-2 text-base font-bold tracking-tight text-white transition-colors group-hover:text-white/80">
-                  {sample.repo}
-                </h3>
-                <p
-                  className={`text-sm leading-relaxed text-white/50 ${
-                    i === 0 ? "" : "line-clamp-2"
-                  }`}
-                >
-                  {sample.summary}
-                </p>
-              </div>
-              <div className="mt-6 flex flex-wrap gap-2">
-                {sample.tags.map((tag) => (
-                  <span
-                    key={tag}
-                    className="text-[9px] font-mono tracking-[0.15em] text-white/30"
-                  >
-                    {tag}
-                  </span>
-                ))}
-              </div>
-            </motion.button>
+              <span className="text-[10px] font-mono tracking-wider text-white/20">{item.step}</span>
+              <h3 className="mb-2 mt-4 text-base font-bold tracking-tight text-white">
+                {item.title}
+              </h3>
+              <p className="text-sm leading-relaxed text-white/50">{item.desc}</p>
+            </motion.div>
           ))}
         </div>
       </section>
