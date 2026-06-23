@@ -22,6 +22,7 @@ export function Dashboard({
   chatInput,
   setChatInput,
   askQuestion,
+  chatLoading,
 }: {
   analysisResult: AnalysisResult;
   activeView: DashboardView;
@@ -31,6 +32,7 @@ export function Dashboard({
   chatInput: string;
   setChatInput: (value: string) => void;
   askQuestion: (event: FormEvent<HTMLFormElement>) => void;
+  chatLoading: boolean;
 }) {
   const isChat = activeView === "AI Chat";
 
@@ -41,7 +43,7 @@ export function Dashboard({
         <TopBar activeView={activeView} onNewScan={onNewScan} />
         {isChat ? (
           <div className="flex flex-1 flex-col overflow-hidden">
-            <ChatView messages={messages} chatInput={chatInput} setChatInput={setChatInput} askQuestion={askQuestion} />
+            <ChatView messages={messages} chatInput={chatInput} setChatInput={setChatInput} askQuestion={askQuestion} chatLoading={chatLoading} />
           </div>
         ) : (
           <div className="mx-auto w-full max-w-[1440px] flex-1 overflow-y-auto px-6 py-8">
