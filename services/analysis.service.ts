@@ -1,14 +1,27 @@
 import { join } from "path";
-import { readdirSync, readFileSync, statSync, existsSync } from "fs";
-import { validateRepository, cloneRepository, deleteRepository, getRepositoryMetadata } from "./github.service";
+import { readFileSync, writeFileSync, existsSync } from "fs";
+import { validateRepository, cloneRepository, getRepositoryMetadata } from "./github.service";
 import { walkDirectory, countFiles, countLinesOfCode, readFile } from "./file.service";
-import { detectFramework, parsePackageJson } from "./framework.service";
+import { detectFramework } from "./framework.service";
 import { detectLanguages } from "./language.service";
 import { repositoryIndexService } from "./repositoryIndex.service";
 import { generateSummary, chatWithRepo, generateReadme } from "./ai.service";
 import type { AnalysisResult, FileNode, Insights } from "@/lib/analysis-types";
 
 const ANALYSIS_STORE = new Map<string, AnalysisResult>();
+
+export interface ContextFile {
+  projectName: string;
+  languages: string[];
+  languageDistribution: { name: string; weight: number }[];
+  frameworks: Record<string, string | null>;
+  files: number;
+  folders: number;
+  linesOfCode: number;
+  topFolders: string[];
+  entryPoints: string[];
+  dependencies: string[];
+}
 
 function generateId(): string {
   return `analysis_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
@@ -86,91 +99,114 @@ function computeInsights(structure: FileNode[], deps: string[]): Insights {
   };
 }
 
-export async function analyzeRepository(url: string): Promise<AnalysisResult> {
-  // validate
+function collectFilePaths(nodes: FileNode[], paths: string[]) {
+  for (const node of nodes) {
+    if (node.type === "file") {
+      paths.push(node.path);
+    }
+    if (node.children) collectFilePaths(node.children, paths);
+  }
+}
+
+function collectFileContents(rootPath: string, nodes: FileNode[]): { path: string; content: string | null }[] {
+  const files: { path: string; content: string | null }[] = [];
+  for (const node of nodes) {
+    if (node.type === "file") {
+      const fullPath = join(rootPath, node.path);
+      const content = readFile(fullPath);
+      files.push({ path: node.path, content });
+    }
+    if (node.children) {
+      files.push(...collectFileContents(rootPath, node.children));
+    }
+  }
+  return files;
+}
+
+function getTopFolders(structure: FileNode[]): string[] {
+  return structure
+    .filter((n) => n.type === "folder")
+    .map((n) => n.name);
+}
+
+export async function analyzeRepository(
+  url: string,
+  onProgress?: (step: number) => void,
+): Promise<AnalysisResult> {
+  onProgress?.(0);
   const validation = await validateRepository(url);
   if (!validation.valid) {
     throw new Error(validation.error || "Invalid repository");
   }
 
-  // clone
-  const { path: repoPath } = await cloneRepository(url);
+  const analysisId = generateId();
 
-  try {
-    // walk files
-    const structure = walkDirectory(repoPath);
-    const { files, folders } = countFiles(structure);
-    const linesOfCode = countLinesOfCode(repoPath);
+  onProgress?.(1);
+  const { path: repoPath } = await cloneRepository(url, analysisId);
 
-    // read config files
-    const configFiles = readConfigFiles(repoPath);
+  onProgress?.(2);
+  const structure = walkDirectory(repoPath);
+  const { files, folders } = countFiles(structure);
+  const linesOfCode = countLinesOfCode(repoPath);
 
-    // detect framework and languages
-    const frameworks = detectFramework(configFiles);
-    const filePaths: string[] = [];
-    function collectPaths(nodes: FileNode[], prefix = "") {
-      for (const node of nodes) {
-        if (node.type === "file") {
-          filePaths.push(node.path);
-        }
-        if (node.children) collectPaths(node.children, node.path);
-      }
-    }
-    collectPaths(structure);
-    const languages = detectLanguages(filePaths);
+  onProgress?.(3);
+  const configFiles = readConfigFiles(repoPath);
+  const frameworks = detectFramework(configFiles);
+  const filePaths: string[] = [];
+  collectFilePaths(structure, filePaths);
+  const languageDistribution = detectLanguages(filePaths);
+  const languages = languageDistribution.map((l) => l.name);
 
-    // metadata
-    const repoMeta = await getRepositoryMetadata(url);
-    const entryPoints = findEntryPoints(repoPath);
-    const dependencies = findDependencies(repoPath);
+  const repoMeta = await getRepositoryMetadata(url);
+  const entryPoints = findEntryPoints(repoPath);
+  const dependencies = findDependencies(repoPath);
 
-    // compute insights
-    const insights = computeInsights(structure, dependencies);
+  onProgress?.(4);
+  const insights = computeInsights(structure, dependencies);
+  const topFolders = getTopFolders(structure);
 
-    // get top-level folders
-    const topFolders = structure
-      .filter((n) => n.type === "folder")
-      .map((n) => n.name);
+  onProgress?.(5);
+  const allFiles = collectFileContents(repoPath, structure);
+  repositoryIndexService.buildIndex(allFiles);
 
-    // AI summary
-    const summary = await generateSummary({
-      projectName: repoMeta.name,
-      languages,
-      frameworks: { ...frameworks },
+  // save context file for on-demand AI report generation
+  const context: ContextFile = {
+    projectName: repoMeta.name,
+    languages,
+    languageDistribution,
+    frameworks: { ...frameworks },
+    files,
+    folders,
+    linesOfCode,
+    topFolders,
+    entryPoints,
+    dependencies,
+  };
+  writeFileSync(join(repoPath, "context.json"), JSON.stringify(context, null, 2));
+
+  const result: AnalysisResult = {
+    analysisId,
+    projectName: repoMeta.name,
+    summary: "",
+    frameworks,
+    languages,
+    languageDistribution,
+    statistics: {
       files,
       folders,
       linesOfCode,
-      topFolders,
-      entryPoints,
-      dependencies,
-    });
+      totalSize: 0,
+    },
+    structure,
+    insights,
+    dependencies,
+    entryPoints,
+    repoPath,
+  };
 
-    const analysisId = generateId();
+  ANALYSIS_STORE.set(analysisId, result);
 
-    const result: AnalysisResult = {
-      analysisId,
-      projectName: repoMeta.name,
-      summary,
-      frameworks,
-      languages,
-      statistics: {
-        files,
-        folders,
-        linesOfCode,
-        totalSize: 0,
-      },
-      structure,
-      insights,
-      dependencies,
-      entryPoints,
-    };
-
-    ANALYSIS_STORE.set(analysisId, result);
-
-    return result;
-  } finally {
-    deleteRepository(repoPath);
-  }
+  return result;
 }
 
 export function getAnalysis(analysisId: string): AnalysisResult | undefined {
@@ -186,11 +222,10 @@ export async function askQuestion(
 
   // find relevant files via index
   const relevantPaths = repositoryIndexService.query(question);
-  const repoPath = join(process.cwd(), "temp", analysisId);
 
   const contextFiles: { path: string; content: string }[] = [];
   for (const filePath of relevantPaths) {
-    const fullPath = join(repoPath, filePath);
+    const fullPath = join(analysis.repoPath, filePath);
     const content = readFile(fullPath);
     if (content) {
       contextFiles.push({ path: filePath, content });
@@ -202,6 +237,37 @@ export async function askQuestion(
     languages: analysis.languages,
     frameworks: analysis.frameworks,
   });
+}
+
+export async function generateSummaryForAnalysis(analysisId: string): Promise<string> {
+  const analysis = ANALYSIS_STORE.get(analysisId);
+  if (!analysis) throw new Error("Analysis not found");
+
+  if (analysis.summary) return analysis.summary;
+
+  const contextPath = join(analysis.repoPath, "context.json");
+  let context: ContextFile;
+  try {
+    context = JSON.parse(readFileSync(contextPath, "utf-8"));
+  } catch {
+    context = {
+      projectName: analysis.projectName,
+      languages: analysis.languages,
+      languageDistribution: analysis.languageDistribution,
+      frameworks: analysis.frameworks,
+      files: analysis.statistics.files,
+      folders: analysis.statistics.folders,
+      linesOfCode: analysis.statistics.linesOfCode,
+      topFolders: analysis.structure.filter((n) => n.type === "folder").map((n) => n.name),
+      entryPoints: analysis.entryPoints,
+      dependencies: analysis.dependencies,
+    };
+  }
+
+  const summary = await generateSummary(context);
+  analysis.summary = summary;
+  ANALYSIS_STORE.set(analysisId, analysis);
+  return summary;
 }
 
 export async function generateProjectReadme(analysisId: string): Promise<string> {

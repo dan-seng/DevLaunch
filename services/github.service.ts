@@ -54,13 +54,13 @@ export async function getRepositoryMetadata(url: string): Promise<RepoMetadata> 
   };
 }
 
-export async function cloneRepository(url: string): Promise<{ path: string; repoPath: string }> {
+export async function cloneRepository(url: string, customId?: string): Promise<{ path: string; repoPath: string }> {
   ensureTempDir();
   const parsed = parseRepoUrl(url);
   if (!parsed) throw new Error("Invalid repository URL");
 
-  const analysisId = `repo_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
-  const clonePath = join(TEMP_BASE, analysisId);
+  const folderName = customId || `repo_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+  const clonePath = join(TEMP_BASE, folderName);
 
   const git = simpleGit();
   await git.clone(url, clonePath, [

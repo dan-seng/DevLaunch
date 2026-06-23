@@ -10,6 +10,7 @@ export interface AnalysisResult {
     deployment: string | null;
   };
   languages: string[];
+  languageDistribution: { name: string; weight: number }[];
   statistics: {
     files: number;
     folders: number;
@@ -20,6 +21,7 @@ export interface AnalysisResult {
   insights: Insights;
   dependencies: string[];
   entryPoints: string[];
+  repoPath: string;
 }
 
 export interface FileNode {

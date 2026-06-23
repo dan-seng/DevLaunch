@@ -31,7 +31,7 @@ Guidelines:
 - If a field is null or empty, skip it rather than guessing.`;
 
   const response = await ai.models.generateContent({
-    model: "gemini-2.0-flash",
+    model: "gemini-2.5-flash",
     contents: prompt,
   });
 
@@ -41,7 +41,11 @@ Guidelines:
 export async function chatWithRepo(
   question: string,
   contextFiles: { path: string; content: string }[],
-  metadata: { projectName: string; languages: string[]; frameworks: Record<string, string | null> },
+  metadata: {
+    projectName: string;
+    languages: string[];
+    frameworks: Record<string, string | null>;
+  },
 ): Promise<string> {
   const fileContext = contextFiles
     .map((f) => `--- ${f.path} ---\n${f.content.slice(0, 4000)}`)
@@ -49,7 +53,12 @@ export async function chatWithRepo(
 
   const prompt = `You are a codebase assistant for the project "${metadata.projectName}". Answer the user's question based ONLY on the provided file contents below. If the answer cannot be determined from the provided files, say so clearly.
 
-Technologies detected: ${metadata.languages.join(", ")}, Frameworks: ${Object.entries(metadata.frameworks).filter(([_, v]) => v).map(([k, v]) => `${k}: ${v}`).join(", ")}
+Technologies detected: ${metadata.languages.join(", ")}, Frameworks: ${Object.entries(
+    metadata.frameworks,
+  )
+    .filter(([_, v]) => v)
+    .map(([k, v]) => `${k}: ${v}`)
+    .join(", ")}
 
 Relevant Files:
 ${fileContext}

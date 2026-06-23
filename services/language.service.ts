@@ -33,7 +33,7 @@ const EXTENSION_MAP: Record<string, { language: string; weight: number }> = {
   ".proto": { language: "Protocol Buffers", weight: 2 },
 };
 
-export function detectLanguages(files: string[]): string[] {
+export function detectLanguages(files: string[]): { name: string; weight: number }[] {
   const scores = new Map<string, number>();
 
   for (const file of files) {
@@ -48,5 +48,5 @@ export function detectLanguages(files: string[]): string[] {
 
   return [...scores.entries()]
     .sort((a, b) => b[1] - a[1])
-    .map(([lang]) => lang);
+    .map(([name, weight]) => ({ name, weight }));
 }
