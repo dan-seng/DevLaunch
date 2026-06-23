@@ -21,6 +21,7 @@ export interface AnalysisResult {
   insights: Insights;
   dependencies: string[];
   entryPoints: string[];
+  readme: string;
   repoPath: string;
 }
 

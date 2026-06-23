@@ -7,21 +7,25 @@ import { loadingSteps } from "@/data/loading-steps";
 import { AnalyzingScreen } from "@/components/analyzing-screen";
 import { Dashboard } from "@/components/dashboard";
 import { LandingPage } from "@/components/landing-page";
+import { useLocalStorage } from "@/hooks/use-local-storage";
+
+const INITIAL_MESSAGES = [
+  {
+    from: "AI",
+    text: "Ask me where a feature lives, which files matter, or how this repository is structured.",
+  },
+];
 
 export default function DevLaunchApp() {
-  const [appState, setAppState] = useState<AppState>("landing");
+  const [appState, setAppState, hydrated] = useLocalStorage<AppState>("appState", "landing");
   const [repoUrl, setRepoUrl] = useState("");
-  const [activeView, setActiveView] = useState<DashboardView>("Overview");
+  const [activeView, setActiveView] = useLocalStorage<DashboardView>("activeView", "Overview");
   const [step, setStep] = useState(0);
-  const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null);
+  const [analysisResult, setAnalysisResult] = useLocalStorage<AnalysisResult | null>("analysisResult", null);
   const [analysisError, setAnalysisError] = useState("");
   const [chatInput, setChatInput] = useState("");
-  const [messages, setMessages] = useState([
-    {
-      from: "AI",
-      text: "Ask me where a feature lives, which files matter, or how this repository is structured.",
-    },
-  ]);
+  const [chatLoading, setChatLoading] = useState(false);
+  const [messages, setMessages] = useLocalStorage<{ from: string; text: string }[]>("messages", INITIAL_MESSAGES);
 
   const startAnalysis = useCallback(async (url?: string) => {
     const targetUrl = url || repoUrl;
@@ -101,13 +105,14 @@ export default function DevLaunchApp() {
     setAppState("landing");
     setAnalysisResult(null);
     setAnalysisError("");
-    setMessages([
-      {
-        from: "AI",
-        text: "Ask me where a feature lives, which files matter, or how this repository is structured.",
-      },
-    ]);
+    setMessages(INITIAL_MESSAGES);
     setChatInput("");
+    if (typeof window !== "undefined") {
+      window.localStorage.removeItem("appState");
+      window.localStorage.removeItem("analysisResult");
+      window.localStorage.removeItem("messages");
+      window.localStorage.removeItem("activeView");
+    }
   }
 
   async function askQuestion(event: FormEvent<HTMLFormElement>) {
@@ -120,6 +125,7 @@ export default function DevLaunchApp() {
       { from: "You", text: question },
     ]);
     setChatInput("");
+    setChatLoading(true);
 
     try {
       const res = await fetch(`/api/v1/analysis/${analysisResult.analysisId}/chat`, {
@@ -144,7 +150,17 @@ export default function DevLaunchApp() {
         ...current,
         { from: "AI", text: `Error: ${message}` },
       ]);
+    } finally {
+      setChatLoading(false);
     }
+  }
+
+  if (!hydrated) {
+    return (
+      <div className="flex h-screen items-center justify-center bg-background">
+        <div className="size-2 animate-pulse rounded-full bg-white/30" />
+      </div>
+    );
   }
 
   if (appState === "analyzing") {
@@ -168,6 +184,7 @@ export default function DevLaunchApp() {
         chatInput={chatInput}
         setChatInput={setChatInput}
         askQuestion={askQuestion}
+        chatLoading={chatLoading}
       />
     );
   }

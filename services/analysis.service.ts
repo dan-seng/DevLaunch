@@ -10,6 +10,35 @@ import type { AnalysisResult, FileNode, Insights } from "@/lib/analysis-types";
 
 const ANALYSIS_STORE = new Map<string, AnalysisResult>();
 
+function getStorePath(analysisId: string): string {
+  return join(process.cwd(), "temp", analysisId, ".analysis.json");
+}
+
+function saveToDisk(analysisId: string, data: AnalysisResult) {
+  try {
+    writeFileSync(getStorePath(analysisId), JSON.stringify(data, null, 2));
+  } catch { /* skip */ }
+}
+
+function loadFromDisk(analysisId: string): AnalysisResult | null {
+  try {
+    const path = getStorePath(analysisId);
+    if (!existsSync(path)) return null;
+    return JSON.parse(readFileSync(path, "utf-8")) as AnalysisResult;
+  } catch {
+    return null;
+  }
+}
+
+function getFromStore(analysisId: string): AnalysisResult | undefined {
+  return ANALYSIS_STORE.get(analysisId) || loadFromDisk(analysisId) || undefined;
+}
+
+function setInStore(analysisId: string, data: AnalysisResult) {
+  ANALYSIS_STORE.set(analysisId, data);
+  saveToDisk(analysisId, data);
+}
+
 export interface ContextFile {
   projectName: string;
   languages: string[];
@@ -188,6 +217,7 @@ export async function analyzeRepository(
     analysisId,
     projectName: repoMeta.name,
     summary: "",
+    readme: "",
     frameworks,
     languages,
     languageDistribution,
@@ -204,20 +234,20 @@ export async function analyzeRepository(
     repoPath,
   };
 
-  ANALYSIS_STORE.set(analysisId, result);
+  setInStore(analysisId, result);
 
   return result;
 }
 
 export function getAnalysis(analysisId: string): AnalysisResult | undefined {
-  return ANALYSIS_STORE.get(analysisId);
+  return getFromStore(analysisId);
 }
 
 export async function askQuestion(
   analysisId: string,
   question: string,
 ): Promise<string> {
-  const analysis = ANALYSIS_STORE.get(analysisId);
+  const analysis = getFromStore(analysisId);
   if (!analysis) throw new Error("Analysis not found");
 
   // find relevant files via index
@@ -240,7 +270,7 @@ export async function askQuestion(
 }
 
 export async function generateSummaryForAnalysis(analysisId: string): Promise<string> {
-  const analysis = ANALYSIS_STORE.get(analysisId);
+  const analysis = getFromStore(analysisId);
   if (!analysis) throw new Error("Analysis not found");
 
   if (analysis.summary) return analysis.summary;
@@ -266,17 +296,19 @@ export async function generateSummaryForAnalysis(analysisId: string): Promise<st
 
   const summary = await generateSummary(context);
   analysis.summary = summary;
-  ANALYSIS_STORE.set(analysisId, analysis);
+  setInStore(analysisId, analysis);
   return summary;
 }
 
 export async function generateProjectReadme(analysisId: string): Promise<string> {
-  const analysis = ANALYSIS_STORE.get(analysisId);
+  const analysis = getFromStore(analysisId);
   if (!analysis) throw new Error("Analysis not found");
+
+  if (analysis.readme) return analysis.readme;
 
   const structureStr = JSON.stringify(analysis.structure, null, 2);
 
-  return generateReadme({
+  const readme = await generateReadme({
     projectName: analysis.projectName,
     description: analysis.summary.slice(0, 200),
     languages: analysis.languages,
@@ -286,4 +318,8 @@ export async function generateProjectReadme(analysisId: string): Promise<string>
     entryPoints: analysis.entryPoints,
     statistics: analysis.statistics,
   });
+
+  analysis.readme = readme;
+  setInStore(analysisId, analysis);
+  return readme;
 }
