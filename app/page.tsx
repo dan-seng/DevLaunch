@@ -1,6 +1,7 @@
 "use client";
 
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useCallback, useState } from "react";
+import type { AnalysisResult } from "@/lib/analysis-types";
 import type { AppState, DashboardView } from "@/data/types";
 import { loadingSteps } from "@/data/loading-steps";
 import { AnalyzingScreen } from "@/components/analyzing-screen";
@@ -12,6 +13,8 @@ export default function DevLaunchApp() {
   const [repoUrl, setRepoUrl] = useState("");
   const [activeView, setActiveView] = useState<DashboardView>("Overview");
   const [step, setStep] = useState(0);
+  const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null);
+  const [analysisError, setAnalysisError] = useState("");
   const [chatInput, setChatInput] = useState("");
   const [messages, setMessages] = useState([
     {
@@ -20,47 +23,128 @@ export default function DevLaunchApp() {
     },
   ]);
 
-  useEffect(() => {
-    if (appState !== "analyzing") return;
-    const interval = window.setInterval(() => {
-      setStep((current) => {
-        if (current >= loadingSteps.length - 1) {
-          window.clearInterval(interval);
-          window.setTimeout(() => {
-            setAppState("dashboard");
-            setActiveView("Overview");
-          }, 450);
-          return current;
-        }
-        return current + 1;
+  const startAnalysis = useCallback(async (url?: string) => {
+    const targetUrl = url || repoUrl;
+    if (!targetUrl) return;
+
+    setStep(0);
+    setAnalysisError("");
+    setAppState("analyzing");
+
+    try {
+      const res = await fetch("/api/v1/analyze", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url: targetUrl }),
       });
-    }, 800);
-    return () => window.clearInterval(interval);
-  }, [appState]);
+
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || "Analysis failed");
+      }
+
+      const reader = res.body!.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
+      let hasResult = false;
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split("\n");
+        buffer = lines.pop() || "";
+
+        for (const line of lines) {
+          if (!line.trim()) continue;
+          try {
+            const event = JSON.parse(line);
+            if (event.type === "progress") {
+              setStep(event.step);
+            } else if (event.type === "result") {
+              setAnalysisResult(event.data);
+              hasResult = true;
+            } else if (event.type === "error") {
+              setAnalysisError(event.message);
+            }
+          } catch {
+            // skip malformed lines
+          }
+        }
+      }
+
+      if (hasResult) {
+        window.setTimeout(() => {
+          setAppState("dashboard");
+          setActiveView("Overview");
+        }, 450);
+      }
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Analysis failed";
+      setAnalysisError(message);
+    }
+  }, [repoUrl]);
 
   function analyze(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     startAnalysis();
   }
 
-  function startAnalysis() {
-    setStep(0);
-    setAppState("analyzing");
+  function handleSamplePick(repo: string) {
+    const url = `https://github.com/${repo}`;
+    setRepoUrl(url);
+    startAnalysis(url);
   }
 
-  function askQuestion(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    const question = chatInput.trim();
-    if (!question) return;
-    setMessages((current) => [
-      ...current,
-      { from: "You", text: question },
+  function onNewScan() {
+    setAppState("landing");
+    setAnalysisResult(null);
+    setAnalysisError("");
+    setMessages([
       {
         from: "AI",
-        text: "The likely entry point is app/page.tsx, with repository analysis planned under services/analysis.service.ts and API delegation through app/api/v1 routes.",
+        text: "Ask me where a feature lives, which files matter, or how this repository is structured.",
       },
     ]);
     setChatInput("");
+  }
+
+  async function askQuestion(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const question = chatInput.trim();
+    if (!question || !analysisResult) return;
+
+    setMessages((current) => [
+      ...current,
+      { from: "You", text: question },
+    ]);
+    setChatInput("");
+
+    try {
+      const res = await fetch(`/api/v1/analysis/${analysisResult.analysisId}/chat`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ question }),
+      });
+
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || "Chat failed");
+      }
+
+      const data = await res.json();
+      setMessages((current) => [
+        ...current,
+        { from: "AI", text: data.answer },
+      ]);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Chat failed";
+      setMessages((current) => [
+        ...current,
+        { from: "AI", text: `Error: ${message}` },
+      ]);
+    }
   }
 
   if (appState === "analyzing") {
@@ -68,16 +152,18 @@ export default function DevLaunchApp() {
       <AnalyzingScreen
         progress={Math.round(((step + 1) / loadingSteps.length) * 100)}
         step={step}
+        error={analysisError}
       />
     );
   }
 
-  if (appState === "dashboard") {
+  if (appState === "dashboard" && analysisResult) {
     return (
       <Dashboard
+        analysisResult={analysisResult}
         activeView={activeView}
         setActiveView={setActiveView}
-        onNewScan={() => setAppState("landing")}
+        onNewScan={onNewScan}
         messages={messages}
         chatInput={chatInput}
         setChatInput={setChatInput}
@@ -91,10 +177,8 @@ export default function DevLaunchApp() {
       repoUrl={repoUrl}
       setRepoUrl={setRepoUrl}
       analyze={analyze}
-      pickSample={(repo) => {
-        setRepoUrl(`https://github.com/${repo}`);
-        startAnalysis();
-      }}
+      pickSample={handleSamplePick}
+      error={analysisError}
     />
   );
 }

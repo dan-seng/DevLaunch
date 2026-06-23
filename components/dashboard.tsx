@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent } from "react";
+import type { AnalysisResult } from "@/lib/analysis-types";
 import { Sidebar } from "./sidebar";
 import { TopBar } from "./top-bar";
 import { OverviewView } from "./overview-view";
@@ -13,6 +14,7 @@ import { InsightsView } from "./insights-view";
 import type { DashboardView } from "@/data/types";
 
 export function Dashboard({
+  analysisResult,
   activeView,
   setActiveView,
   onNewScan,
@@ -21,6 +23,7 @@ export function Dashboard({
   setChatInput,
   askQuestion,
 }: {
+  analysisResult: AnalysisResult;
   activeView: DashboardView;
   setActiveView: (view: DashboardView) => void;
   onNewScan: () => void;
@@ -42,12 +45,12 @@ export function Dashboard({
           </div>
         ) : (
           <div className="mx-auto w-full max-w-[1440px] flex-1 overflow-y-auto px-6 py-8">
-            {activeView === "Overview" ? <OverviewView setActiveView={setActiveView} /> : null}
-            {activeView === "AI Summary" ? <SummaryView /> : null}
-            {activeView === "Tech Stack" ? <TechStackView /> : null}
-            {activeView === "Project Structure" ? <StructureView /> : null}
-            {activeView === "README Generator" ? <ReadmeView /> : null}
-            {activeView === "Insights" ? <InsightsView /> : null}
+            {activeView === "Overview" ? <OverviewView analysisResult={analysisResult} setActiveView={setActiveView} /> : null}
+            {activeView === "AI Summary" ? <SummaryView analysisResult={analysisResult} /> : null}
+            {activeView === "Tech Stack" ? <TechStackView analysisResult={analysisResult} /> : null}
+            {activeView === "Project Structure" ? <StructureView analysisResult={analysisResult} /> : null}
+            {activeView === "README Generator" ? <ReadmeView analysisResult={analysisResult} /> : null}
+            {activeView === "Insights" ? <InsightsView analysisResult={analysisResult} /> : null}
           </div>
         )}
       </section>

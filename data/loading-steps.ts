@@ -1,7 +1,8 @@
 export const loadingSteps = [
+  "Validating Repository",
   "Cloning Repository",
   "Reading Project Structure",
-  "Detecting Technologies...",
-  "Building AI Context...",
-  "Generating Insights...",
+  "Detecting Technologies",
+  "Computing Metrics & Insights",
+  "Building Search Index",
 ];

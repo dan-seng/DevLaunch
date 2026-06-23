@@ -43,3 +43,6 @@ next-env.d.ts
 DevLaunchDocumentation.pdf
 
 devlaunch-design/
+
+# temp cloned repos
+/temp/
