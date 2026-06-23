@@ -1,19 +1,120 @@
 "use client";
 
-import { FormEvent } from "react";
-import { Plus, Zap, ThumbsUp, ThumbsDown, RefreshCw, Paperclip, Code, Mic, ArrowUp } from "lucide-react";
+import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Plus, Zap, ThumbsUp, ThumbsDown, RefreshCw, Paperclip, Code, Mic, ArrowUp, Copy, Check } from "lucide-react";
+import { MarkdownRenderer } from "./markdown-renderer";
+
+function TypingAnimation({ text, onDone }: { text: string; onDone: () => void }) {
+  const [displayed, setDisplayed] = useState(0);
+  const doneRef = useRef(false);
+
+  useEffect(() => {
+    setDisplayed(0);
+    doneRef.current = false;
+    if (!text) {
+      onDone();
+      return;
+    }
+    const timer = setInterval(() => {
+      setDisplayed((prev) => (prev >= text.length ? prev : prev + 2));
+    }, 10);
+    return () => clearInterval(timer);
+  }, [text, onDone]);
+
+  useEffect(() => {
+    if (displayed >= text.length && !doneRef.current) {
+      doneRef.current = true;
+      onDone();
+    }
+  }, [displayed, text.length, onDone]);
+
+  return (
+    <span className="whitespace-pre-wrap">
+      {text.slice(0, displayed)}
+      {displayed < text.length && (
+        <span className="inline-block size-2 rounded-full bg-white/60 animate-pulse ml-1 align-middle" />
+      )}
+    </span>
+  );
+}
+
+function ThinkingDots() {
+  return (
+    <div className="flex items-center gap-1.5 py-3">
+      <div className="flex items-center gap-1">
+        <span className="size-1.5 rounded-full bg-white/40 animate-bounce" style={{ animationDelay: "0ms" }} />
+        <span className="size-1.5 rounded-full bg-white/40 animate-bounce" style={{ animationDelay: "150ms" }} />
+        <span className="size-1.5 rounded-full bg-white/40 animate-bounce" style={{ animationDelay: "300ms" }} />
+      </div>
+    </div>
+  );
+}
 
 export function ChatView({
   messages,
   chatInput,
   setChatInput,
   askQuestion,
+  chatLoading,
 }: {
   messages: { from: string; text: string }[];
   chatInput: string;
   setChatInput: (value: string) => void;
   askQuestion: (event: FormEvent<HTMLFormElement>) => void;
+  chatLoading: boolean;
 }) {
+  const bottomRef = useRef<HTMLDivElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const [animationDone, setAnimationDone] = useState<Record<number, boolean>>({});
+  const [messageCopied, setMessageCopied] = useState<Record<number, boolean>>({});
+  const [codeCopied, setCodeCopied] = useState<Record<number, boolean>>({});
+
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages, chatLoading]);
+
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+      if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        const form = e.currentTarget.closest("form");
+        if (form) form.requestSubmit();
+      }
+    },
+    [],
+  );
+
+  const latestAIIndex = (() => {
+    for (let i = messages.length - 1; i >= 0; i--) {
+      if (messages[i].from === "AI") return i;
+    }
+    return -1;
+  })();
+
+  const extractAllCode = (text: string) => {
+    const blocks: string[] = [];
+    const regex = /```\w*\n([\s\S]*?)```/g;
+    let match;
+    while ((match = regex.exec(text)) !== null) {
+      blocks.push(match[1].trim());
+    }
+    return blocks.join("\n\n");
+  };
+
+  const handleCopyMessage = (index: number, text: string) => {
+    navigator.clipboard.writeText(text);
+    setMessageCopied((prev) => ({ ...prev, [index]: true }));
+    setTimeout(() => setMessageCopied((prev) => ({ ...prev, [index]: false })), 2000);
+  };
+
+  const handleCopyCode = (index: number, text: string) => {
+    const code = extractAllCode(text);
+    if (!code) return;
+    navigator.clipboard.writeText(code);
+    setCodeCopied((prev) => ({ ...prev, [index]: true }));
+    setTimeout(() => setCodeCopied((prev) => ({ ...prev, [index]: false })), 2000);
+  };
+
   return (
     <div className="flex h-full flex-col overflow-hidden">
       <div className="flex flex-1 overflow-hidden">
@@ -42,7 +143,7 @@ export function ChatView({
               <div key={i} className={`flex ${msg.from === "You" ? "justify-end" : "justify-start"} group`}>
                 <div className={msg.from === "You" ? "max-w-[80%]" : "max-w-[90%] w-full"}>
                   <div
-                    className={`flex items-center gap-2 mb-2 ${msg.from === "You" ? "justify-end" : ""}`}
+                    className={`flex items-center gap-2 mb-3 ${msg.from === "You" ? "justify-end" : ""}`}
                   >
                     {msg.from === "AI" && (
                       <div className="flex size-6 items-center justify-center rounded bg-white">
@@ -52,17 +153,44 @@ export function ChatView({
                     <span className={`text-xs ${msg.from === "AI" ? "font-semibold uppercase tracking-wider text-white/70" : "font-semibold text-white/70"}`}>
                       {msg.from === "AI" ? "DevLaunch AI" : "You"}
                     </span>
+                    {msg.from === "AI" && (
+                      <div className="ml-2 flex gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+                        <button
+                          onClick={() => handleCopyMessage(i, msg.text)}
+                          className="rounded p-1 text-white/30 transition-colors hover:bg-white/[0.06] hover:text-white/60"
+                          title="Copy message"
+                        >
+                          {messageCopied[i] ? <Check size={12} /> : <Copy size={12} />}
+                        </button>
+                        {extractAllCode(msg.text) && (
+                          <button
+                            onClick={() => handleCopyCode(i, msg.text)}
+                            className="rounded p-1 text-white/30 transition-colors hover:bg-white/[0.06] hover:text-white/60"
+                            title="Copy code only"
+                          >
+                            {codeCopied[i] ? <Check size={12} /> : <Code size={12} />}
+                          </button>
+                        )}
+                      </div>
+                    )}
                   </div>
                   {msg.from === "You" ? (
                     <div className="rounded-2xl rounded-tr-sm border border-white/[0.08] bg-white px-5 py-3.5 text-sm text-black shadow-lg">
-                      {msg.text}
+                      <p className="leading-relaxed whitespace-pre-wrap">{msg.text}</p>
                     </div>
                   ) : (
                     <div className="rounded-2xl rounded-tl-sm border border-white/[0.06] bg-white/[0.03] px-6 py-5 text-sm text-white/90 shadow-xl">
-                      <p className="leading-relaxed whitespace-pre-wrap">{msg.text}</p>
+                      {i === latestAIIndex && !animationDone[i] ? (
+                        <TypingAnimation
+                          text={msg.text}
+                          onDone={() => setAnimationDone((prev) => ({ ...prev, [i]: true }))}
+                        />
+                      ) : (
+                        <MarkdownRenderer text={msg.text} />
+                      )}
                     </div>
                   )}
-                  {msg.from === "AI" && (
+                  {msg.from === "AI" && i === latestAIIndex && animationDone[i] && (
                     <div className="mt-2 flex gap-1 opacity-0 transition-opacity group-hover:opacity-100">
                       <button className="rounded-lg p-1.5 text-white/30 transition-colors hover:bg-white/[0.06] hover:text-white/60">
                         <ThumbsUp size={14} />
@@ -78,15 +206,34 @@ export function ChatView({
                 </div>
               </div>
             ))}
-            <div className="h-40" />
+            {chatLoading && (
+              <div className="flex justify-start">
+                <div className="max-w-[90%] w-full">
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="flex size-6 items-center justify-center rounded bg-white">
+                      <Zap size={13} className="text-black" />
+                    </div>
+                    <span className="text-xs font-semibold uppercase tracking-wider text-white/70">
+                      DevLaunch AI
+                    </span>
+                  </div>
+                  <div className="rounded-2xl rounded-tl-sm border border-white/[0.06] bg-white/[0.03] px-6 py-5 shadow-xl">
+                    <ThinkingDots />
+                  </div>
+                </div>
+              </div>
+            )}
+            <div ref={bottomRef} />
           </div>
 
           <div className="border-t border-white/[0.06] bg-gradient-to-t from-background via-background to-background px-6 pt-4 pb-6">
             <form onSubmit={askQuestion} className="mx-auto max-w-4xl">
               <div className="rounded-2xl border border-white/[0.10] bg-black p-2 shadow-2xl transition-all focus-within:border-white/30">
                 <textarea
+                  ref={textareaRef}
                   value={chatInput}
                   onChange={(e) => setChatInput(e.target.value)}
+                  onKeyDown={handleKeyDown}
                   placeholder="Ask DevLaunch anything about your tech stack..."
                   rows={1}
                   className="w-full resize-none bg-transparent px-4 py-3 text-sm text-white outline-none placeholder:text-white/30"
@@ -99,13 +246,13 @@ export function ChatView({
                 />
                 <div className="flex items-center justify-between px-2 pb-1">
                   <div className="flex items-center gap-1">
-                    <button type="button" className="rounded-lg p-2 text-white/30 transition-all hover:bg-white/[0.06] hover:text-white/60" title="Attach Code File">
+                    <button type="button" className="rounded-lg p-2 text-white/30 transition-all hover:bg-white/[0.06] hover:text-white/60" title="Attach Code File" tabIndex={-1}>
                       <Paperclip size={18} />
                     </button>
-                    <button type="button" className="rounded-lg p-2 text-white/30 transition-all hover:bg-white/[0.06] hover:text-white/60" title="Insert Snippet">
+                    <button type="button" className="rounded-lg p-2 text-white/30 transition-all hover:bg-white/[0.06] hover:text-white/60" title="Insert Snippet" tabIndex={-1}>
                       <Code size={18} />
                     </button>
-                    <button type="button" className="rounded-lg p-2 text-white/30 transition-all hover:bg-white/[0.06] hover:text-white/60" title="Voice Input">
+                    <button type="button" className="rounded-lg p-2 text-white/30 transition-all hover:bg-white/[0.06] hover:text-white/60" title="Voice Input" tabIndex={-1}>
                       <Mic size={18} />
                     </button>
                   </div>
@@ -113,7 +260,8 @@ export function ChatView({
                     <span className="pr-3 text-[10px] font-mono text-white/20">Markdown</span>
                     <button
                       type="submit"
-                      className="flex size-9 items-center justify-center rounded-xl bg-white text-black shadow-lg transition-all hover:brightness-90 active:scale-95"
+                      disabled={chatLoading || !chatInput.trim()}
+                      className="flex size-9 items-center justify-center rounded-xl bg-white text-black shadow-lg transition-all hover:brightness-90 active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed"
                     >
                       <ArrowUp size={16} />
                     </button>
