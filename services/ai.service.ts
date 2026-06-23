@@ -68,7 +68,7 @@ User Question: ${question}
 Provide a specific answer referencing the actual files and code patterns found. Include file paths in your answer.`;
 
   const response = await ai.models.generateContent({
-    model: "gemini-2.0-flash",
+    model: "gemini-2.5-flash",
     contents: prompt,
   });
 
@@ -103,7 +103,7 @@ Include these sections:
 Use the actual data provided. Do not invent features or commands.`;
 
   const response = await ai.models.generateContent({
-    model: "gemini-2.0-flash",
+    model: "gemini-2.5-flash",
     contents: prompt,
   });
 
