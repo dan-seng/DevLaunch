@@ -1,6 +1,6 @@
 import { join } from "path";
-import { readFileSync, writeFileSync, existsSync } from "fs";
-import { validateRepository, cloneRepository, getRepositoryMetadata } from "./github.service";
+import { readFileSync, writeFileSync, existsSync, rmSync, readdirSync, statSync } from "fs";
+import { validateRepository, cloneRepository, getRepositoryMetadata, deleteRepository } from "./github.service";
 import { walkDirectory, countFiles, countLinesOfCode, readFile } from "./file.service";
 import { detectFramework } from "./framework.service";
 import { detectLanguages } from "./language.service";
@@ -274,6 +274,56 @@ export function getAnalysis(analysisId: string): AnalysisResult | undefined {
   return getFromStore(analysisId);
 }
 
+export function deleteAnalysis(analysisId: string) {
+  const analysis = getFromStore(analysisId);
+  ANALYSIS_STORE.delete(analysisId);
+  if (analysis?.repoPath) {
+    deleteRepository(analysis.repoPath);
+  } else {
+    const diskPath = getStorePath(analysisId);
+    if (existsSync(diskPath)) {
+      rmSync(diskPath, { force: true });
+    }
+    const dirPath = join(process.cwd(), "temp", analysisId);
+    if (existsSync(dirPath)) {
+      deleteRepository(dirPath);
+    }
+  }
+}
+
+const PRUNE_AGE_MS = 60 * 60 * 1000; // 1 hour
+
+export function pruneOldAnalyses(): number {
+  const tempDir = join(process.cwd(), "temp");
+  if (!existsSync(tempDir)) return 0;
+
+  const now = Date.now();
+  let pruned = 0;
+
+  for (const entry of readdirSync(tempDir)) {
+    if (!entry.startsWith("analysis_")) continue;
+    const entryPath = join(tempDir, entry);
+
+    try {
+      const analysisFilePath = join(entryPath, ".analysis.json");
+      const targetPath = existsSync(analysisFilePath) ? analysisFilePath : entryPath;
+      const { mtimeMs } = statSync(targetPath);
+
+      if (now - mtimeMs > PRUNE_AGE_MS) {
+        deleteRepository(entryPath);
+        pruned++;
+      }
+    } catch {
+      try {
+        deleteRepository(entryPath);
+        pruned++;
+      } catch { /* skip */ }
+    }
+  }
+
+  return pruned;
+}
+
 export async function askQuestion(
   analysisId: string,
   question: string,
@@ -353,4 +403,10 @@ export async function generateProjectReadme(analysisId: string): Promise<string>
   analysis.readme = readme;
   setInStore(analysisId, analysis);
   return readme;
+}
+
+// Run initial prune on server start, then every hour
+if (typeof window === "undefined" && process.env.NEXT_RUNTIME === "nodejs") {
+  pruneOldAnalyses();
+  setInterval(pruneOldAnalyses, PRUNE_AGE_MS);
 }

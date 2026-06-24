@@ -31,6 +31,12 @@ export default function DevLaunchApp() {
     const targetUrl = url || repoUrl;
     if (!targetUrl) return;
 
+    if (analysisResult?.analysisId) {
+      try {
+        await fetch(`/api/v1/analysis/${analysisResult.analysisId}`, { method: "DELETE" });
+      } catch { /* skip */ }
+    }
+
     setStep(0);
     setAnalysisError("");
     setAppState("analyzing");
@@ -101,7 +107,12 @@ export default function DevLaunchApp() {
     startAnalysis(url);
   }
 
-  function onNewScan() {
+  async function onNewScan() {
+    if (analysisResult?.analysisId) {
+      try {
+        await fetch(`/api/v1/analysis/${analysisResult.analysisId}`, { method: "DELETE" });
+      } catch { /* skip */ }
+    }
     setAppState("landing");
     setAnalysisResult(null);
     setAnalysisError("");
