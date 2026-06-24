@@ -57,8 +57,8 @@ export function OverviewView({
             </p>
           </div>
           <svg className="size-24" viewBox="0 0 36 36">
-            <path className="stroke-current text-white/10" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" strokeWidth="3" />
-            <path className="stroke-current text-white" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" strokeDasharray={`${insights.health}, 100`} strokeLinecap="round" strokeWidth="3" />
+            <path className="stroke-current text-on-surface/10" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" strokeWidth="3" />
+            <path className="stroke-current text-on-surface" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" strokeDasharray={`${insights.health}, 100`} strokeLinecap="round" strokeWidth="3" />
           </svg>
         </GlassPanel>
         <GlassPanel className="flex flex-col justify-between p-6">
@@ -69,7 +69,7 @@ export function OverviewView({
           <div className="flex items-end justify-between">
             <div className="space-y-0.5">
               <p className="text-[11px] uppercase tracking-wider text-on-surface-variant">Total Files</p>
-              <p className="text-xs text-white">{statistics.files} Files</p>
+              <p className="text-xs text-on-surface">{statistics.files} Files</p>
             </div>
             <FolderArchive size={20} className="text-outline-variant" />
           </div>
@@ -82,7 +82,7 @@ export function OverviewView({
           <div className="flex items-end justify-between">
             <div className="space-y-0.5">
               <p className="text-[11px] uppercase tracking-wider text-on-surface-variant">Folders</p>
-              <p className="text-xs text-white">{statistics.folders} Directories</p>
+              <p className="text-xs text-on-surface">{statistics.folders} Directories</p>
             </div>
             <Clock size={20} className="text-outline-variant" />
           </div>
@@ -93,7 +93,7 @@ export function OverviewView({
         <GlassPanel className="border border-outline-variant p-8">
           <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
             <div>
-              <h3 className="mb-2 text-2xl font-bold text-white">{projectName}</h3>
+              <h3 className="mb-2 text-2xl font-bold text-on-surface">{projectName}</h3>
               <p className="max-w-2xl leading-relaxed text-on-surface-variant">
                 {summary
                   ? `${summary.slice(0, 300)}...`
@@ -103,7 +103,7 @@ export function OverviewView({
             <div className="flex gap-2">
               <Badge variant="default" className="border-outline-variant bg-surface-variant uppercase">Analyzed</Badge>
               <Badge variant="inverse" className="flex items-center gap-1">
-                <span className="size-1.5 animate-pulse rounded-full bg-black" />
+                <span className="size-1.5 animate-pulse rounded-full bg-on-surface" />
                 Active
               </Badge>
             </div>
@@ -118,8 +118,8 @@ export function OverviewView({
               <div key={label as string}>
                 <p className="text-[10px] font-bold uppercase text-on-surface-variant">{label as string}</p>
                 <div className="mt-1 flex items-center gap-2 rounded-lg border border-outline-variant bg-surface-container-high px-3 py-1.5">
-                  <span className="size-2 rounded-full bg-white" />
-                  <span className="text-xs text-white">{value as string}</span>
+                  <span className="size-2 rounded-full bg-on-surface" />
+                  <span className="text-xs text-on-surface">{value as string}</span>
                 </div>
               </div>
             ))}
@@ -159,7 +159,7 @@ export function OverviewView({
             <button
               key={view}
               onClick={() => setActiveView(view)}
-              className="group cursor-pointer rounded-xl border border-outline-variant/40 bg-[rgba(31,31,31,0.7)] p-6 text-left backdrop-blur-[12px] transition-all hover:border-white/30 hover:bg-[#2a2a2a]"
+              className="group cursor-pointer rounded-xl border border-outline-variant/40 bg-surface-container-high/70 p-6 text-left backdrop-blur-[12px] transition-all hover:border-outline-variant hover:bg-surface-container-highest"
             >
               <div className="mb-8">{icons[view]}</div>
               <h3 className="text-xl font-bold text-on-surface">{view}</h3>

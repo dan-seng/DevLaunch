@@ -45,12 +45,12 @@ export function ReadmeView({ analysisResult }: { analysisResult: AnalysisResult 
           README.md
         </span>
         <div className="flex items-center gap-2">
-          <div className="flex overflow-hidden rounded-lg border border-outline-variant/50 bg-black/20 p-0.5">
+          <div className="flex overflow-hidden rounded-lg border border-outline-variant/50 bg-surface-container/80 p-0.5">
             <button
               onClick={() => setMode("preview")}
               className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-all ${
                 mode === "preview"
-                  ? "bg-white text-black"
+                  ? "bg-on-surface text-surface"
                   : "text-on-surface-variant hover:text-on-surface"
               }`}
             >
@@ -61,7 +61,7 @@ export function ReadmeView({ analysisResult }: { analysisResult: AnalysisResult 
               onClick={() => setMode("raw")}
               className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-all ${
                 mode === "raw"
-                  ? "bg-white text-black"
+                  ? "bg-on-surface text-surface"
                   : "text-on-surface-variant hover:text-on-surface"
               }`}
             >

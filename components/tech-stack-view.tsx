@@ -30,7 +30,7 @@ export function TechStackView({ analysisResult }: { analysisResult: AnalysisResu
           </p>
         </div>
         <GlassPanel className="flex items-center gap-3 border border-outline-variant bg-surface-container-high px-4 py-2">
-          <span className="text-2xl font-bold text-white">{insights.health}%</span>
+          <span className="text-2xl font-bold text-on-surface">{insights.health}%</span>
           <div className="flex flex-col">
             <span className="text-[10px] uppercase text-on-surface-variant">Health</span>
             <span className="text-xs">{insights.health >= 80 ? "Production Ready" : "Needs Attention"}</span>
@@ -45,16 +45,16 @@ export function TechStackView({ analysisResult }: { analysisResult: AnalysisResu
               <h3 className="mb-1 text-2xl font-bold text-on-surface">Languages & Frameworks</h3>
               <p className="text-sm text-on-surface-variant">Core technologies detected</p>
             </div>
-            <Terminal size={32} className="text-white" />
+            <Terminal size={32} className="text-on-surface" />
           </div>
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             {languages.slice(0, 6).map((lang) => (
               <div
                 key={lang}
-                className="flex cursor-pointer items-center gap-4 rounded-xl border border-outline-variant bg-surface-container-low p-3 transition-all hover:border-white/50"
+                className="flex cursor-pointer items-center gap-4 rounded-xl border border-outline-variant bg-surface-container-low p-3 transition-all hover:border-outline"
               >
-                <div className="flex size-10 items-center justify-center rounded-lg bg-white/10">
-                  <Code size={20} className="text-white" />
+                <div className="flex size-10 items-center justify-center rounded-lg bg-overlay">
+                  <Code size={20} className="text-on-surface" />
                 </div>
                 <div>
                   <h4 className="text-xs text-on-surface">{lang}</h4>
@@ -77,7 +77,7 @@ export function TechStackView({ analysisResult }: { analysisResult: AnalysisResu
                 className="cursor-pointer rounded-xl border border-outline-variant bg-surface-container-high p-4 transition-colors hover:bg-surface-variant/30"
               >
                 <div className="flex items-center gap-3">
-                  <Zap size={20} className="text-white" />
+                  <Zap size={20} className="text-on-surface" />
                   <span className="text-xs text-on-surface">{name}</span>
                 </div>
                 <p className="mt-2 text-[10px] text-on-surface-variant">{desc}</p>
@@ -90,19 +90,19 @@ export function TechStackView({ analysisResult }: { analysisResult: AnalysisResu
 
         <GlassPanel className="col-span-1 border border-outline-variant bg-surface-container p-6 lg:col-span-6">
           <h3 className="mb-4 flex items-center gap-2 text-2xl font-bold text-on-surface">
-            <Server size={24} className="text-white" />
+            <Server size={24} className="text-on-surface" />
             Backend & Infrastructure
           </h3>
           <div className="space-y-3">
             {backendItems.length ? backendItems.map(([name, tag]) => (
               <div key={name} className="flex items-start gap-4 rounded-lg border border-outline-variant bg-surface-container-low p-4">
-                <div className="rounded bg-zinc-800 p-2 text-zinc-300">
+                <div className="rounded bg-surface-variant p-2 text-on-surface-variant">
                   <Code size={16} />
                 </div>
                 <div className="flex-1">
                   <div className="flex justify-between">
                     <span className="text-xs text-on-surface">{name}</span>
-                    <span className="rounded bg-zinc-800 px-2 py-0.5 text-[10px] text-white">{tag}</span>
+                    <span className="rounded bg-surface-variant px-2 py-0.5 text-[10px] text-on-surface">{tag}</span>
                   </div>
                   <p className="mt-1 text-xs text-on-surface-variant">Detected from configuration</p>
                 </div>
@@ -115,7 +115,7 @@ export function TechStackView({ analysisResult }: { analysisResult: AnalysisResu
 
         <GlassPanel className="col-span-1 border border-outline-variant bg-surface-container p-6 lg:col-span-6">
           <h3 className="mb-4 flex items-center gap-2 text-2xl font-bold text-on-surface">
-            <Shield size={24} className="text-white" />
+            <Shield size={24} className="text-on-surface" />
             Dependencies
           </h3>
           <div className="grid grid-cols-2 gap-4">
@@ -145,7 +145,7 @@ export function TechStackView({ analysisResult }: { analysisResult: AnalysisResu
               {analysisResult.entryPoints.length ? analysisResult.entryPoints.map((ep) => (
                 <div key={ep} className="flex items-center justify-between rounded-lg bg-surface-container-low p-3">
                   <div className="flex items-center gap-3">
-                    <div className="size-2 rounded-full bg-white" />
+                    <div className="size-2 rounded-full bg-on-surface" />
                     <span className="text-xs font-mono">{ep}</span>
                   </div>
                 </div>
@@ -162,8 +162,8 @@ export function TechStackView({ analysisResult }: { analysisResult: AnalysisResu
             </div>
             <div className="grid grid-cols-2 gap-3">
               {[
-                { value: `${statistics.files}`, label: "Files", icon: <FileText size={32} className="text-white" /> },
-                { value: `${statistics.folders}`, label: "Folders", icon: <Server size={32} className="text-zinc-400" /> },
+                { value: `${statistics.files}`, label: "Files", icon: <FileText size={32} className="text-on-surface" /> },
+                { value: `${statistics.folders}`, label: "Folders", icon: <Server size={32} className="text-on-surface-variant" /> },
               ].map(({ value, label, icon }) => (
                 <div
                   key={label}
@@ -181,14 +181,14 @@ export function TechStackView({ analysisResult }: { analysisResult: AnalysisResu
 
       <GlassPanel className="border border-outline-variant bg-surface-container-low p-6">
         <div className="mb-6 flex items-center gap-3">
-          <Wrench size={24} className="text-white" />
+          <Wrench size={24} className="text-on-surface" />
           <h3 className="text-2xl font-bold text-on-surface">All Languages Detected</h3>
         </div>
         <div className="flex flex-wrap gap-3">
           {languages.map((lang) => (
             <span
               key={lang}
-              className="rounded-full border border-zinc-800 bg-zinc-900 px-3 py-1.5 text-xs text-on-surface font-mono"
+              className="rounded-full border border-outline-variant bg-surface-container px-3 py-1.5 text-xs text-on-surface font-mono"
             >
               {lang}
             </span>

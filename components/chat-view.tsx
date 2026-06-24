@@ -32,7 +32,7 @@ function TypingAnimation({ text, onDone }: { text: string; onDone: () => void })
     <span className="whitespace-pre-wrap">
       {text.slice(0, displayed)}
       {displayed < text.length && (
-        <span className="inline-block size-2 rounded-full bg-white/60 animate-pulse ml-1 align-middle" />
+        <span className="inline-block size-2 rounded-full bg-on-surface/60 animate-pulse ml-1 align-middle" />
       )}
     </span>
   );
@@ -42,9 +42,9 @@ function ThinkingDots() {
   return (
     <div className="flex items-center gap-1.5 py-3">
       <div className="flex items-center gap-1">
-        <span className="size-1.5 rounded-full bg-white/40 animate-bounce" style={{ animationDelay: "0ms" }} />
-        <span className="size-1.5 rounded-full bg-white/40 animate-bounce" style={{ animationDelay: "150ms" }} />
-        <span className="size-1.5 rounded-full bg-white/40 animate-bounce" style={{ animationDelay: "300ms" }} />
+        <span className="size-1.5 rounded-full bg-on-surface/40 animate-bounce" style={{ animationDelay: "0ms" }} />
+        <span className="size-1.5 rounded-full bg-on-surface/40 animate-bounce" style={{ animationDelay: "150ms" }} />
+        <span className="size-1.5 rounded-full bg-on-surface/40 animate-bounce" style={{ animationDelay: "300ms" }} />
       </div>
     </div>
   );
@@ -118,25 +118,25 @@ export function ChatView({
   return (
     <div className="flex h-full flex-col overflow-hidden">
       <div className="flex flex-1 overflow-hidden">
-        <div className="flex w-72 shrink-0 flex-col border-r border-white/[0.06] bg-background">
-          <div className="border-b border-white/[0.04] p-4">
-            <button className="flex w-full items-center justify-center gap-2 rounded-lg border border-white/[0.08] bg-white/[0.04] py-2.5 text-sm text-white/80 transition-all hover:bg-white/[0.08] active:scale-[0.98]">
+        <div className="hidden w-72 shrink-0 flex-col border-r border-outline-variant/50 bg-background md:flex">
+          <div className="border-b border-outline-variant/30 p-4">
+            <button className="flex w-full items-center justify-center gap-2 rounded-lg border border-outline-variant/50 bg-overlay py-2.5 text-sm text-on-surface/80 transition-all hover:bg-surface-container active:scale-[0.98]">
               <Plus size={16} />
               <span>New Conversation</span>
             </button>
           </div>
           <div className="flex items-center justify-center flex-1 p-6">
-            <p className="text-center text-xs text-white/20 font-mono">
+            <p className="text-center text-xs text-on-surface-variant/50 font-mono">
               Thread history coming soon
             </p>
           </div>
         </div>
 
         <div className="flex flex-1 flex-col bg-background min-w-0">
-          <div className="flex-1 space-y-6 overflow-y-auto px-8 py-8">
+          <div className="flex-1 space-y-6 overflow-y-auto px-4 py-6 md:px-8 md:py-8">
             {messages.length === 0 ? (
               <div className="flex h-full items-center justify-center">
-                <p className="text-sm text-white/20 font-mono">Ask a question about the repository.</p>
+                <p className="text-sm text-on-surface-variant/50 font-mono">Ask a question about the repository.</p>
               </div>
             ) : null}
             {messages.map((msg, i) => (
@@ -146,18 +146,18 @@ export function ChatView({
                     className={`flex items-center gap-2 mb-3 ${msg.from === "You" ? "justify-end" : ""}`}
                   >
                     {msg.from === "AI" && (
-                      <div className="flex size-6 items-center justify-center rounded bg-white">
-                        <Zap size={13} className="text-black" />
+                      <div className="flex size-6 items-center justify-center rounded bg-surface-container">
+                        <Zap size={13} className="text-on-surface" />
                       </div>
                     )}
-                    <span className={`text-xs ${msg.from === "AI" ? "font-semibold uppercase tracking-wider text-white/70" : "font-semibold text-white/70"}`}>
+                    <span className={`text-xs ${msg.from === "AI" ? "font-semibold uppercase tracking-wider text-on-surface/70" : "font-semibold text-on-surface/70"}`}>
                       {msg.from === "AI" ? "DevLaunch AI" : "You"}
                     </span>
                     {msg.from === "AI" && (
                       <div className="ml-2 flex gap-1 opacity-0 transition-opacity group-hover:opacity-100">
                         <button
                           onClick={() => handleCopyMessage(i, msg.text)}
-                          className="rounded p-1 text-white/30 transition-colors hover:bg-white/[0.06] hover:text-white/60"
+                          className="rounded p-1 text-on-surface-variant/50 transition-colors hover:bg-overlay hover:text-on-surface/80"
                           title="Copy message"
                         >
                           {messageCopied[i] ? <Check size={12} /> : <Copy size={12} />}
@@ -165,7 +165,7 @@ export function ChatView({
                         {extractAllCode(msg.text) && (
                           <button
                             onClick={() => handleCopyCode(i, msg.text)}
-                            className="rounded p-1 text-white/30 transition-colors hover:bg-white/[0.06] hover:text-white/60"
+                            className="rounded p-1 text-on-surface-variant/50 transition-colors hover:bg-overlay hover:text-on-surface/80"
                             title="Copy code only"
                           >
                             {codeCopied[i] ? <Check size={12} /> : <Code size={12} />}
@@ -175,11 +175,11 @@ export function ChatView({
                     )}
                   </div>
                   {msg.from === "You" ? (
-                    <div className="rounded-2xl rounded-tr-sm border border-white/[0.08] bg-white px-5 py-3.5 text-sm text-black shadow-lg">
+                    <div className="rounded-2xl rounded-tr-sm border border-outline-variant/50 bg-surface-container px-5 py-3.5 text-sm text-on-surface shadow-lg">
                       <p className="leading-relaxed whitespace-pre-wrap">{msg.text}</p>
                     </div>
                   ) : (
-                    <div className="rounded-2xl rounded-tl-sm border border-white/[0.06] bg-white/[0.03] px-6 py-5 text-sm text-white/90 shadow-xl">
+                    <div className="rounded-2xl rounded-tl-sm border border-outline-variant/30 bg-surface-container-low/60 px-6 py-5 text-sm text-on-surface/90 shadow-xl">
                       {i === latestAIIndex && !animationDone[i] ? (
                         <TypingAnimation
                           text={msg.text}
@@ -192,13 +192,13 @@ export function ChatView({
                   )}
                   {msg.from === "AI" && i === latestAIIndex && animationDone[i] && (
                     <div className="mt-2 flex gap-1 opacity-0 transition-opacity group-hover:opacity-100">
-                      <button className="rounded-lg p-1.5 text-white/30 transition-colors hover:bg-white/[0.06] hover:text-white/60">
+                      <button className="rounded-lg p-1.5 text-on-surface-variant/50 transition-colors hover:bg-overlay hover:text-on-surface/80">
                         <ThumbsUp size={14} />
                       </button>
-                      <button className="rounded-lg p-1.5 text-white/30 transition-colors hover:bg-white/[0.06] hover:text-white/60">
+                      <button className="rounded-lg p-1.5 text-on-surface-variant/50 transition-colors hover:bg-overlay hover:text-on-surface/80">
                         <ThumbsDown size={14} />
                       </button>
-                      <button className="rounded-lg p-1.5 text-white/30 transition-colors hover:bg-white/[0.06] hover:text-white/60">
+                      <button className="rounded-lg p-1.5 text-on-surface-variant/50 transition-colors hover:bg-overlay hover:text-on-surface/80">
                         <RefreshCw size={14} />
                       </button>
                     </div>
@@ -210,14 +210,14 @@ export function ChatView({
               <div className="flex justify-start">
                 <div className="max-w-[90%] w-full">
                   <div className="flex items-center gap-2 mb-3">
-                    <div className="flex size-6 items-center justify-center rounded bg-white">
-                      <Zap size={13} className="text-black" />
+                    <div className="flex size-6 items-center justify-center rounded bg-surface-container">
+                      <Zap size={13} className="text-on-surface" />
                     </div>
-                    <span className="text-xs font-semibold uppercase tracking-wider text-white/70">
+                    <span className="text-xs font-semibold uppercase tracking-wider text-on-surface/70">
                       DevLaunch AI
                     </span>
                   </div>
-                  <div className="rounded-2xl rounded-tl-sm border border-white/[0.06] bg-white/[0.03] px-6 py-5 shadow-xl">
+                  <div className="rounded-2xl rounded-tl-sm border border-outline-variant/30 bg-surface-container-low/60 px-6 py-5 shadow-xl">
                     <ThinkingDots />
                   </div>
                 </div>
@@ -226,9 +226,9 @@ export function ChatView({
             <div ref={bottomRef} />
           </div>
 
-          <div className="border-t border-white/[0.06] bg-gradient-to-t from-background via-background to-background px-6 pt-4 pb-6">
+          <div className="border-t border-outline-variant/50 bg-gradient-to-t from-background via-background to-background px-4 pt-4 pb-6 md:px-6">
             <form onSubmit={askQuestion} className="mx-auto max-w-4xl">
-              <div className="rounded-2xl border border-white/[0.10] bg-black p-2 shadow-2xl transition-all focus-within:border-white/30">
+              <div className="rounded-2xl border border-outline-variant/60 bg-surface-container p-2 shadow-2xl transition-all focus-within:border-outline">
                 <textarea
                   ref={textareaRef}
                   value={chatInput}
@@ -236,7 +236,7 @@ export function ChatView({
                   onKeyDown={handleKeyDown}
                   placeholder="Ask DevLaunch anything about your tech stack..."
                   rows={1}
-                  className="w-full resize-none bg-transparent px-4 py-3 text-sm text-white outline-none placeholder:text-white/30"
+                  className="w-full resize-none bg-transparent px-4 py-3 text-sm text-on-surface outline-none placeholder:text-on-surface-variant/50"
                   style={{ minHeight: "52px", maxHeight: "200px" }}
                   onInput={(e) => {
                     const el = e.currentTarget;
@@ -246,29 +246,29 @@ export function ChatView({
                 />
                 <div className="flex items-center justify-between px-2 pb-1">
                   <div className="flex items-center gap-1">
-                    <button type="button" className="rounded-lg p-2 text-white/30 transition-all hover:bg-white/[0.06] hover:text-white/60" title="Attach Code File" tabIndex={-1}>
+                    <button type="button" className="rounded-lg p-2 text-on-surface-variant/50 transition-all hover:bg-overlay hover:text-on-surface/80" title="Attach Code File" tabIndex={-1}>
                       <Paperclip size={18} />
                     </button>
-                    <button type="button" className="rounded-lg p-2 text-white/30 transition-all hover:bg-white/[0.06] hover:text-white/60" title="Insert Snippet" tabIndex={-1}>
+                    <button type="button" className="rounded-lg p-2 text-on-surface-variant/50 transition-all hover:bg-overlay hover:text-on-surface/80" title="Insert Snippet" tabIndex={-1}>
                       <Code size={18} />
                     </button>
-                    <button type="button" className="rounded-lg p-2 text-white/30 transition-all hover:bg-white/[0.06] hover:text-white/60" title="Voice Input" tabIndex={-1}>
+                    <button type="button" className="rounded-lg p-2 text-on-surface-variant/50 transition-all hover:bg-overlay hover:text-on-surface/80" title="Voice Input" tabIndex={-1}>
                       <Mic size={18} />
                     </button>
                   </div>
                   <div className="flex items-center gap-3">
-                    <span className="pr-3 text-[10px] font-mono text-white/20">Markdown</span>
+                    <span className="pr-3 text-[10px] font-mono text-on-surface-variant/50">Markdown</span>
                     <button
                       type="submit"
                       disabled={chatLoading || !chatInput.trim()}
-                      className="flex size-9 items-center justify-center rounded-xl bg-white text-black shadow-lg transition-all hover:brightness-90 active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed"
+                      className="flex size-9 items-center justify-center rounded-xl bg-on-surface text-surface shadow-lg transition-all hover:brightness-90 active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed"
                     >
                       <ArrowUp size={16} />
                     </button>
                   </div>
                 </div>
               </div>
-              <p className="mt-3 text-center text-[10px] font-mono text-white/20">
+              <p className="mt-3 text-center text-[10px] font-mono text-on-surface-variant/50">
                 DevLaunch AI can make mistakes. Verify critical code in production environments.
               </p>
             </form>

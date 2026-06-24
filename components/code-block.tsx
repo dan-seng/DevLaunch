@@ -30,19 +30,19 @@ export function CodeBlock({ code, language = "tsx" }: { code: string; language?:
   };
 
   return (
-    <div className="my-4 overflow-hidden rounded-lg border border-white/[0.08] bg-[#0a0a0a]">
-      <div className="flex items-center justify-between border-b border-white/[0.06] bg-white/[0.03] px-4 py-2">
+    <div className="my-4 overflow-hidden rounded-lg border border-outline-variant/50 bg-surface">
+      <div className="flex items-center justify-between border-b border-outline-variant/30 bg-overlay px-4 py-2">
         <div className="flex items-center gap-2">
           <span className="size-2.5 rounded-full bg-red-500/50" />
           <span className="size-2.5 rounded-full bg-yellow-500/50" />
           <span className="size-2.5 rounded-full bg-green-500/50" />
-          <span className="ml-2 text-[10px] font-mono tracking-wider text-white/30">
+          <span className="ml-2 text-[10px] font-mono tracking-wider text-on-surface-variant/50">
             {language}
           </span>
         </div>
         <button
           onClick={handleCopy}
-          className="flex items-center gap-1 rounded px-2 py-1 text-[10px] text-white/40 transition-colors hover:bg-white/[0.06] hover:text-white/70"
+          className="flex items-center gap-1 rounded px-2 py-1 text-[10px] text-on-surface-variant/60 transition-colors hover:bg-overlay hover:text-on-surface"
         >
           {copied ? <Check size={12} /> : <Copy size={12} />}
           {copied ? "Copied!" : "Copy"}

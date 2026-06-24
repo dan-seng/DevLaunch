@@ -7,8 +7,8 @@ import { loadingSteps } from "@/data/loading-steps"
 export function AnalyzingScreen({ progress, step, error }: { progress: number; step: number; error?: string }) {
   return (
     <main className="grid min-h-screen place-items-center overflow-hidden bg-background px-4 text-on-surface">
-      <div className="absolute left-[-10%] top-[-10%] size-[40%] rounded-full bg-white/5 blur-[120px]" />
-      <div className="absolute bottom-[-10%] right-[-10%] size-[40%] rounded-full bg-white/5 blur-[120px]" />
+      <div className="absolute left-[-10%] top-[-10%] size-[40%] rounded-full bg-overlay blur-[120px]" />
+      <div className="absolute bottom-[-10%] right-[-10%] size-[40%] rounded-full bg-overlay blur-[120px]" />
       <div className="relative z-10 w-full max-w-[480px] animate-[fade-up_0.45s_ease-out]">
         <div className="mb-8 flex flex-col items-center space-y-4">
           <div className="size-16">
@@ -23,7 +23,7 @@ export function AnalyzingScreen({ progress, step, error }: { progress: number; s
               <span className="text-xs uppercase tracking-widest text-on-surface-variant font-mono">Operation Status</span>
               <h2 className="text-2xl font-bold text-on-surface">Analyzing Project...</h2>
             </div>
-            <span className="text-2xl font-black text-white">{progress}%</span>
+            <span className="text-2xl font-black text-on-surface">{progress}%</span>
           </div>
           <div className="space-y-5 p-6">
             {loadingSteps.map((label, index) => {
@@ -33,11 +33,11 @@ export function AnalyzingScreen({ progress, step, error }: { progress: number; s
                 <div key={label} className="flex items-center gap-4">
                   <div className="flex size-6 items-center justify-center">
                     {complete ? (
-                      <div className="flex size-6 items-center justify-center rounded-full border border-white/20 bg-white/10">
-                        <Check size={14} className="text-white" />
+                      <div className="flex size-6 items-center justify-center rounded-full border border-outline-variant bg-overlay">
+                        <Check size={14} className="text-on-surface" />
                       </div>
                     ) : active ? (
-                      <RefreshCw size={20} className="animate-spin text-white" style={{ animationDuration: "2s" }} />
+                      <RefreshCw size={20} className="animate-spin text-on-surface" style={{ animationDuration: "2s" }} />
                     ) : (
                       <div className="flex size-6 items-center justify-center rounded-full border border-outline-variant">
                         <div className="size-1.5 rounded-full bg-outline-variant" />
@@ -57,8 +57,8 @@ export function AnalyzingScreen({ progress, step, error }: { progress: number; s
                       {label}
                     </p>
                     {active ? (
-                      <div className="mt-2 h-1 w-full overflow-hidden rounded-full bg-white/10">
-                        <div className="h-full w-2/3 rounded-full bg-white progress-shimmer" />
+                      <div className="mt-2 h-1 w-full overflow-hidden rounded-full bg-overlay">
+                        <div className="h-full w-2/3 rounded-full bg-on-surface progress-shimmer" />
                       </div>
                     ) : null}
                   </div>
