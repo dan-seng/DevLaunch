@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent } from "react";
+import { FormEvent, useState } from "react";
 import type { AnalysisResult } from "@/lib/analysis-types";
 import { Sidebar } from "./sidebar";
 import { TopBar } from "./top-bar";
@@ -34,19 +34,25 @@ export function Dashboard({
   askQuestion: (event: FormEvent<HTMLFormElement>) => void;
   chatLoading: boolean;
 }) {
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const isChat = activeView === "AI Chat";
 
   return (
     <main className="h-screen overflow-hidden bg-background text-on-surface">
-      <Sidebar activeView={activeView} setActiveView={setActiveView} />
-      <section className="flex h-screen flex-col lg:ml-[280px] overflow-hidden">
-        <TopBar activeView={activeView} onNewScan={onNewScan} />
+      <Sidebar
+        activeView={activeView}
+        setActiveView={setActiveView}
+        mobileOpen={mobileMenuOpen}
+        onMobileClose={() => setMobileMenuOpen(false)}
+      />
+      <section className="flex h-screen flex-col overflow-hidden lg:ml-[280px]">
+        <TopBar activeView={activeView} onNewScan={onNewScan} onMenuClick={() => setMobileMenuOpen(true)} />
         {isChat ? (
           <div className="flex flex-1 flex-col overflow-hidden">
             <ChatView messages={messages} chatInput={chatInput} setChatInput={setChatInput} askQuestion={askQuestion} chatLoading={chatLoading} />
           </div>
         ) : (
-          <div className="mx-auto w-full max-w-[1440px] flex-1 overflow-y-auto px-6 py-8">
+          <div className="mx-auto w-full max-w-[1440px] flex-1 overflow-y-auto px-4 py-6 md:px-6 md:py-8">
             {activeView === "Overview" ? <OverviewView analysisResult={analysisResult} setActiveView={setActiveView} /> : null}
             {activeView === "AI Summary" ? <SummaryView analysisResult={analysisResult} /> : null}
             {activeView === "Tech Stack" ? <TechStackView analysisResult={analysisResult} /> : null}
