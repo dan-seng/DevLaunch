@@ -10,6 +10,7 @@ import {
   ChevronRight,
   X,
   GitBranch,
+  Search,
 } from "lucide-react";
 import type { AnalysisResult, FileNode } from "@/lib/analysis-types";
 import hljs from "highlight.js";
@@ -166,6 +167,25 @@ export function StructureView({ analysisResult }: { analysisResult: AnalysisResu
 
   const [explorerWidth, onExplorerDrag] = useResizable(340, 180, 600, "left");
   const [inspectorWidth, onInspectorDrag] = useResizable(380, 260, 600, "right");
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const filteredStructure = useMemo(() => {
+    if (!searchQuery.trim()) return structure;
+
+    function filterNodes(nodes: FileNode[]): FileNode[] {
+      const q = searchQuery.toLowerCase();
+      return nodes.reduce<FileNode[]>((acc, node) => {
+        if (node.name.toLowerCase().includes(q)) return acc.concat(node);
+        if (node.children) {
+          const filtered = filterNodes(node.children);
+          if (filtered.length > 0) acc.push({ ...node, children: filtered });
+        }
+        return acc;
+      }, []);
+    }
+
+    return filterNodes(structure);
+  }, [structure, searchQuery]);
 
   useEffect(() => {
     if (!selectedNode || selectedNode.type === "folder") {
@@ -197,22 +217,38 @@ export function StructureView({ analysisResult }: { analysisResult: AnalysisResu
         className="flex shrink-0 flex-col border-r border-outline-variant"
         style={{ width: explorerWidth }}
       >
-        <div className="flex items-center justify-between border-b border-outline-variant/50 p-4">
-          <span className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant font-mono">Explorer</span>
-          <div className="flex gap-2 text-on-surface-variant">
-            <RefreshCw size={16} className="cursor-pointer hover:text-primary" />
+        <div className="border-b border-outline-variant/50">
+          <div className="flex items-center justify-between p-4 pb-3">
+            <span className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant font-mono">Explorer</span>
+            <RefreshCw size={16} className="cursor-pointer text-on-surface-variant hover:text-on-surface" />
+          </div>
+          <div className="relative px-4 pb-3">
+            <Search size={13} className="absolute left-6 top-1/2 -translate-y-1/2 text-on-surface-variant" />
+            <input
+              type="text"
+              placeholder="Search files..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full rounded-lg border border-outline-variant/50 bg-surface-container py-1.5 pl-8 pr-3 text-xs font-mono text-on-surface placeholder-on-surface-variant/50 outline-none transition-colors focus:border-on-surface-variant"
+            />
           </div>
         </div>
         <div className="flex-1 overflow-y-auto py-2">
-          {structure.map((node) => (
-            <FileTreeItem
-              key={node.path}
-              node={node}
-              depth={0}
-              selectedPath={selectedNode?.path ?? null}
-              onSelect={setSelectedNode}
-            />
-          ))}
+          {filteredStructure.length === 0 ? (
+            <div className="px-4 py-8 text-center text-xs text-on-surface-variant/50 font-mono">
+              No files match your search.
+            </div>
+          ) : (
+            filteredStructure.map((node) => (
+              <FileTreeItem
+                key={node.path}
+                node={node}
+                depth={0}
+                selectedPath={selectedNode?.path ?? null}
+                onSelect={setSelectedNode}
+              />
+            ))
+          )}
         </div>
       </div>
 
@@ -224,7 +260,7 @@ export function StructureView({ analysisResult }: { analysisResult: AnalysisResu
             <div className="flex items-center justify-between border-b border-outline-variant/50 bg-surface-container-high/30 px-6 py-3">
               <div className="flex items-center gap-3 min-w-0">
                 <FileJson size={16} className="shrink-0 text-primary/80" />
-                <span className="font-mono text-sm text-white truncate">{selectedNode.path}</span>
+                <span className="font-mono text-sm text-on-surface truncate">{selectedNode.path}</span>
               </div>
               {selectedNode.size ? (
                 <span className="shrink-0 text-[10px] font-mono text-on-surface-variant">
@@ -232,7 +268,7 @@ export function StructureView({ analysisResult }: { analysisResult: AnalysisResu
                 </span>
               ) : null}
             </div>
-            <div className="flex-1 overflow-auto bg-black">
+            <div className="flex-1 overflow-auto bg-surface">
               {fileLoading ? (
                 <div className="flex items-center justify-center h-full">
                   <div className="flex items-center gap-2 text-sm text-on-surface-variant font-mono">
@@ -254,13 +290,13 @@ export function StructureView({ analysisResult }: { analysisResult: AnalysisResu
             </div>
           </div>
         ) : (
-          <div className="relative z-10 flex flex-1 flex-col items-center justify-center bg-black p-8 text-center">
+          <div className="relative z-10 flex flex-1 flex-col items-center justify-center bg-surface p-8 text-center">
             {selectedNode && selectedNode.type === "folder" ? (
               <div className="max-w-2xl w-full">
-                <div className="mb-8 rounded-2xl border border-white/10 bg-surface-container-high/20 p-10 backdrop-blur-xl">
+                <div className="mb-8 rounded-2xl border border-outline-variant/50 bg-surface-container-high/20 p-10 backdrop-blur-xl">
                   <div className="flex items-center gap-3 mb-4">
                     <Folder size={32} className="text-primary/80" />
-                    <h3 className="text-3xl font-bold text-white font-mono">{selectedNode.name}</h3>
+                    <h3 className="text-3xl font-bold text-on-surface font-mono">{selectedNode.name}</h3>
                   </div>
                   <p className="mx-auto max-w-md text-on-surface-variant font-mono text-sm">
                     {selectedNode.path}
@@ -275,9 +311,9 @@ export function StructureView({ analysisResult }: { analysisResult: AnalysisResu
               </div>
             ) : (
               <div className="max-w-2xl">
-                <div className="mb-8 rounded-2xl border border-white/10 bg-surface-container-high/20 p-10 backdrop-blur-xl">
+                <div className="mb-8 rounded-2xl border border-outline-variant/50 bg-surface-container-high/20 p-10 backdrop-blur-xl">
                   <GitBranch size={72} className="mb-6 text-primary/80" />
-                  <h3 className="mb-3 text-3xl font-bold text-white">Project Structure</h3>
+                  <h3 className="mb-3 text-3xl font-bold text-on-surface">Project Structure</h3>
                   <p className="mx-auto max-w-md text-on-surface-variant">
                     Select a file or folder from the explorer to view details.
                   </p>
@@ -290,12 +326,12 @@ export function StructureView({ analysisResult }: { analysisResult: AnalysisResu
                   ].map(([label, value]) => (
                     <div
                       key={label}
-                      className="group cursor-pointer rounded-xl border border-white/5 bg-surface-container/20 p-4 transition-colors hover:border-white/20"
+                      className="group cursor-pointer rounded-xl border border-outline-variant/30 bg-surface-container/20 p-4 transition-colors hover:border-outline-variant"
                     >
                       <div className="mb-1 text-[10px] font-bold uppercase tracking-widest text-on-surface-variant font-mono transition-colors group-hover:text-primary">
                         {label}
                       </div>
-                      <div className="text-2xl font-bold text-white">{value}</div>
+                      <div className="text-2xl font-bold text-on-surface">{value}</div>
                     </div>
                   ))}
                 </div>
@@ -315,14 +351,14 @@ export function StructureView({ analysisResult }: { analysisResult: AnalysisResu
             <div className="flex items-start justify-between border-b border-outline-variant/50 bg-surface-container-high/30 p-6">
               <div className="flex flex-col min-w-0">
                 <span className="mb-1 text-[10px] font-bold uppercase tracking-widest text-primary">File Inspector</span>
-                <h3 className="truncate font-mono text-xl font-bold text-white">{selectedNode.name}</h3>
+                <h3 className="truncate font-mono text-xl font-bold text-on-surface">{selectedNode.name}</h3>
               </div>
-              <X size={16} className="shrink-0 cursor-pointer text-on-surface-variant transition-colors hover:text-white" onClick={() => setSelectedNode(null)} />
+              <X size={16} className="shrink-0 cursor-pointer text-on-surface-variant transition-colors hover:text-on-surface" onClick={() => setSelectedNode(null)} />
             </div>
             <div className="flex-1 space-y-6 overflow-y-auto p-6">
               <div>
                 <label className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant font-mono">Path</label>
-                <p className="font-mono text-sm text-white break-all">{selectedNode.path}</p>
+                <p className="font-mono text-sm text-on-surface break-all">{selectedNode.path}</p>
               </div>
 
               {selectedNode.type === "folder" && selectedNode.children ? (
@@ -337,14 +373,14 @@ export function StructureView({ analysisResult }: { analysisResult: AnalysisResu
               {selectedNode.size ? (
                 <div>
                   <label className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant font-mono">Size</label>
-                  <p className="font-mono text-sm text-white">{(selectedNode.size / 1024).toFixed(1)} KB</p>
+                  <p className="font-mono text-sm text-on-surface">{(selectedNode.size / 1024).toFixed(1)} KB</p>
                 </div>
               ) : null}
 
               {selectedNode.type === "file" && (
                 <div>
                   <label className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant font-mono">Extension</label>
-                  <p className="font-mono text-sm text-white">.{selectedNode.name.split(".").pop()}</p>
+                  <p className="font-mono text-sm text-on-surface">.{selectedNode.name.split(".").pop()}</p>
                 </div>
               )}
 
