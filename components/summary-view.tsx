@@ -1,11 +1,39 @@
 "use client";
 
-import { useState, useEffect, type ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { Download, RefreshCw, Copy, Sparkles, Lightbulb, Zap, Activity } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { GlassPanel } from "./glass-panel";
 import type { AnalysisResult } from "@/lib/analysis-types";
+import jsPDF from "jspdf";
+
+function formatInline(text: string): ReactNode {
+  const parts: ReactNode[] = [];
+  let remaining = text;
+  let key = 0;
+  const regex = /(?:\*\*(.+?)\*\*)|(?:\*(.+?)\*)|(?:`(.+?)`)/g;
+  let lastIndex = 0;
+  let match: RegExpExecArray | null;
+
+  while ((match = regex.exec(remaining)) !== null) {
+    if (match.index > lastIndex) {
+      parts.push(remaining.slice(lastIndex, match.index));
+    }
+    if (match[1]) {
+      parts.push(<strong key={key++} className="font-bold text-on-surface">{match[1]}</strong>);
+    } else if (match[2]) {
+      parts.push(<em key={key++} className="italic text-on-surface/90">{match[2]}</em>);
+    } else if (match[3]) {
+      parts.push(<code key={key++} className="rounded bg-overlay px-1 py-0.5 font-mono text-xs text-primary">{match[3]}</code>);
+    }
+    lastIndex = regex.lastIndex;
+  }
+  if (lastIndex < remaining.length) {
+    parts.push(remaining.slice(lastIndex));
+  }
+  return parts.length > 0 ? <>{parts}</> : text;
+}
 
 function formatSummary(text: string) {
   const lines = text.split("\n").filter(Boolean);
@@ -18,7 +46,7 @@ function formatSummary(text: string) {
       elements.push(
         <ul key={elements.length} className="list-disc space-y-2 pl-5 text-on-surface-variant/90">
           {listItems.map((item, i) => (
-            <li key={i} className="leading-relaxed">{item.replace(/^[-*]\s*/, "")}</li>
+            <li key={i} className="leading-relaxed">{formatInline(item.replace(/^[-*]\s*/, ""))}</li>
           ))}
         </ul>
       );
@@ -36,13 +64,13 @@ function formatSummary(text: string) {
       if (line.startsWith("#")) {
         elements.push(
           <h4 key={elements.length} className="mb-3 mt-6 text-xl font-bold text-on-surface first:mt-0">
-            {line.replace(/^#+\s*/, "")}
+            {formatInline(line.replace(/^#+\s*/, ""))}
           </h4>
         );
       } else {
         elements.push(
           <p key={elements.length} className="leading-relaxed text-on-surface-variant [&:not(:last-child)]:mb-4">
-            {line}
+            {formatInline(line)}
           </p>
         );
       }
@@ -56,7 +84,7 @@ function formatSummary(text: string) {
 export function SummaryView({ analysisResult }: { analysisResult: AnalysisResult }) {
   const { projectName, languages, insights, statistics } = analysisResult;
   const [summaryText, setSummaryText] = useState(analysisResult.summary || "");
-  const [loading, setLoading] = useState(!analysisResult.summary);
+  const [loading, setLoading] = useState(false);
 
   async function fetchSummary() {
     setLoading(true);
@@ -75,11 +103,70 @@ export function SummaryView({ analysisResult }: { analysisResult: AnalysisResult
     }
   }
 
-  useEffect(() => {
-    if (!analysisResult.summary) {
-      fetchSummary();
+  function exportPDF() {
+    const pdf = new jsPDF("p", "mm", "a4");
+    const pageWidth = pdf.internal.pageSize.getWidth();
+    const margin = 15;
+    const maxWidth = pageWidth - margin * 2;
+    let y = margin;
+
+    function addText(text: string, size: number, bold: boolean) {
+      pdf.setFont("helvetica", bold ? "bold" : "normal");
+      pdf.setFontSize(size);
+      const lines = pdf.splitTextToSize(text, maxWidth);
+      if (y + lines.length * size * 0.35 > 290) {
+        pdf.addPage();
+        y = margin;
+      }
+      pdf.text(lines, margin, y);
+      y += lines.length * size * 0.4 + 2;
     }
-  }, [analysisResult.analysisId]);
+
+    // Title
+    pdf.setFont("helvetica", "bold");
+    pdf.setFontSize(24);
+    pdf.setTextColor(30, 30, 30);
+    pdf.text(`${projectName} — Analysis Report`, margin, y);
+    y += 10;
+
+    // Date
+    pdf.setFont("helvetica", "normal");
+    pdf.setFontSize(10);
+    pdf.setTextColor(120, 120, 120);
+    pdf.text(`Generated on ${new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}`, margin, y);
+    y += 8;
+
+    // Stats line
+    pdf.setFontSize(9);
+    pdf.setTextColor(100, 100, 100);
+    const statsLine = `${statistics.files} files · ${statistics.folders} folders · ${statistics.linesOfCode.toLocaleString()} LOC · ${languages.length} languages`;
+    pdf.text(statsLine, margin, y);
+    y += 8;
+
+    // Separator
+    y += 2;
+    pdf.setDrawColor(220, 220, 220);
+    pdf.line(margin, y, margin + maxWidth, y);
+    y += 8;
+
+    // Summary content
+    const lines = summaryText.split("\n").filter(Boolean);
+    for (const line of lines) {
+      if (line.startsWith("### ")) {
+        addText(line.replace("### ", ""), 13, true);
+      } else if (line.startsWith("## ")) {
+        addText(line.replace("## ", ""), 15, true);
+      } else if (line.startsWith("# ")) {
+        addText(line.replace("# ", ""), 17, true);
+      } else if (line.startsWith("- ") || line.startsWith("* ")) {
+        addText(`• ${line.replace(/^[-*]\s*/, "").replace(/\*\*(.+?)\*\*/g, "$1")}`, 10, false);
+      } else {
+        addText(line.replace(/\*\*(.+?)\*\*/g, "$1").replace(/\*(.+?)\*/g, "$1").replace(/`(.+?)`/g, "$1"), 10, false);
+      }
+    }
+
+    pdf.save(`${projectName.replace(/[^a-zA-Z0-9]/g, "_")}_analysis_report.pdf`);
+  }
 
   const allTech = [...languages, ...Object.values(analysisResult.frameworks).filter(Boolean) as string[]];
 
@@ -98,14 +185,23 @@ export function SummaryView({ analysisResult }: { analysisResult: AnalysisResult
           </p>
         </div>
         <div className="flex gap-3">
-          <Button variant="outline" disabled>
-            <Download size={16} />
-            Export PDF
-          </Button>
-          <Button disabled={loading} onClick={fetchSummary}>
-            <RefreshCw size={16} className={loading ? "animate-spin" : ""} />
-            {loading ? "Generating..." : "Regenerate"}
-          </Button>
+          {summaryText ? (
+            <>
+              <Button variant="outline" onClick={exportPDF}>
+                <Download size={16} />
+                Export PDF
+              </Button>
+              <Button disabled={loading} onClick={fetchSummary}>
+                <RefreshCw size={16} className={loading ? "animate-spin" : ""} />
+                {loading ? "Generating..." : "Regenerate"}
+              </Button>
+            </>
+          ) : (
+            <Button disabled={loading} onClick={fetchSummary}>
+              <Sparkles size={16} className={loading ? "animate-spin" : ""} />
+              {loading ? "Generating..." : "Generate Report"}
+            </Button>
+          )}
         </div>
       </div>
 
