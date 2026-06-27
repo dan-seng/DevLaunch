@@ -23,6 +23,9 @@ export function Dashboard({
   setChatInput,
   askQuestion,
   chatLoading,
+  chatSessions,
+  onNewSession,
+  onSelectSession,
 }: {
   analysisResult: AnalysisResult;
   activeView: DashboardView;
@@ -33,6 +36,9 @@ export function Dashboard({
   setChatInput: (value: string) => void;
   askQuestion: (event: FormEvent<HTMLFormElement>) => void;
   chatLoading: boolean;
+  chatSessions: { id: string; label: string; messages: { from: string; text: string }[] }[];
+  onNewSession: () => void;
+  onSelectSession: (id: string) => void;
 }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const isChat = activeView === "AI Chat";
@@ -49,7 +55,17 @@ export function Dashboard({
         <TopBar activeView={activeView} onNewScan={onNewScan} onMenuClick={() => setMobileMenuOpen(true)} />
         {isChat ? (
           <div className="flex flex-1 flex-col overflow-hidden">
-            <ChatView messages={messages} chatInput={chatInput} setChatInput={setChatInput} askQuestion={askQuestion} chatLoading={chatLoading} />
+            <ChatView
+              messages={messages}
+              chatInput={chatInput}
+              setChatInput={setChatInput}
+              askQuestion={askQuestion}
+              chatLoading={chatLoading}
+              sessions={chatSessions}
+              activeSessionId={chatSessions[0]?.id ?? ""}
+              onNewSession={onNewSession}
+              onSelectSession={onSelectSession}
+            />
           </div>
         ) : (
           <div className="mx-auto w-full max-w-[1440px] flex-1 overflow-y-auto px-4 py-6 md:px-6 md:py-8">
