@@ -444,48 +444,20 @@ export function LandingPage({
             <div className="flex gap-12 md:gap-24">
               <div className="flex flex-col gap-3">
                 <a
-                  href="#"
-                  className="text-sm text-on-surface-variant transition-colors hover:text-on-surface"
-                >
-                  Product
-                </a>
-                <a
-                  href="#"
-                  className="text-sm text-on-surface-variant transition-colors hover:text-on-surface"
-                >
-                  Docs
-                </a>
-                <a
-                  href="#"
-                  className="text-sm text-on-surface-variant transition-colors hover:text-on-surface"
-                >
-                  Changelog
-                </a>
-                <a
-                  href="#"
-                  className="text-sm text-on-surface-variant transition-colors hover:text-on-surface"
-                >
-                  Pricing
-                </a>
-              </div>
-              <div className="flex flex-col gap-3">
-                <a
-                  href="#"
-                  className="text-sm text-on-surface-variant transition-colors hover:text-on-surface"
-                >
-                  Blog
-                </a>
-                <a
-                  href="#"
+                  href="https://github.com/dan-seng/DevLaunch"
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="text-sm text-on-surface-variant transition-colors hover:text-on-surface"
                 >
                   GitHub
                 </a>
                 <a
-                  href="#"
+                  href="https://github.com/dan-seng/DevLaunch/releases"
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="text-sm text-on-surface-variant transition-colors hover:text-on-surface"
                 >
-                  Status
+                  Changelog
                 </a>
               </div>
             </div>
@@ -523,10 +495,10 @@ export function LandingPage({
               </span>
             </div>
             <div className="flex gap-6">
-              {["Privacy", "Terms", "Status"].map((item) => (
+              {["Privacy", "Terms"].map((item) => (
                 <a
                   key={item}
-                  href="#"
+                  href={`/${item.toLowerCase()}`}
                   className="text-xs text-on-surface-variant/70 transition-colors hover:text-on-surface"
                 >
                   {item}
