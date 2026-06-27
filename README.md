@@ -1,36 +1,147 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# DevLaunch
+
+**Repository Intelligence** — Paste any public GitHub URL and get a full structural, technological, and AI-powered analysis in seconds.
+
+Built with Next.js 16, React 19, TypeScript, Tailwind CSS 4, and Google Gemini.
+
+---
+
+## Features
+
+- **Automated repo analysis** — shallow-clones any public GitHub repo, walks the full file tree, counts files/folders/lines of code
+- **Tech stack detection** — deterministic framework & language identification from config files (`package.json`, `Dockerfile`, etc.)
+- **Interactive structure viewer** — resizable 3-pane explorer with syntax-highlighted code viewer, file search, and inspector sidebar
+- **AI summary** — balanced, critical project overview via Google Gemini
+- **AI chat** — RAG-style Q&A across your codebase (keyword index → relevant files → Gemini)
+- **README generator** — one-click generation of professional project READMEs
+- **Health insights** — computed scores for health, maintainability, documentation, and architecture
+- **Dark/light theme** — full dual-theme support persisted to localStorage
+- **Cleanup** — cloned repos are auto-pruned after 1 hour; no leaked disk space
+
+---
+
+## Tech Stack
+
+| Layer | Technology |
+|---|---|
+| Framework | Next.js 16 (App Router) |
+| UI | React 19, TypeScript, Tailwind CSS 4 |
+| Animation | Motion (Framer Motion v12) |
+| AI | Google Gemini 2.5 Flash (`@google/genai`) |
+| Git | `simple-git` (shallow clone) |
+| Markdown | `react-markdown`, `rehype-highlight`, `remark-gfm` |
+| Icons | Lucide React |
+| Code highlighting | highlight.js / PrismJS |
+
+---
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
+
+- Node.js 20+
+- A [Google Gemini API key](https://aistudio.google.com/apikey) (free tier: 20 requests/day)
+
+### Installation
+
+```bash
+git clone https://github.com/dan-seng/DevLaunch.git
+cd DevLaunch
+npm install
+```
+
+### Environment
+
+Copy `.env.example` to `.env` and add your Gemini key:
+
+```bash
+cp .env.example .env
+```
+
+```
+GEMINI_API_KEY=your_key_here
+```
+
+### Development
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000). Paste a GitHub URL and click **Analyze**.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Production
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npm run build
+npm start
+```
 
-## Learn More
+---
 
-To learn more about Next.js, take a look at the following resources:
+## Usage
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+1. **Landing page** — enter any public GitHub URL (or pick a sample repo)
+2. **Analysis** — the server clones, scans, detects tech, computes insights, builds a search index
+3. **Dashboard** — seven views to explore the result:
+   - **Overview** — score, file stats, language distribution, quick navigation
+   - **AI Summary** — auto-generated project summary (requires Gemini)
+   - **Tech Stack** — languages, frameworks, dependencies, entry points
+   - **Project Structure** — interactive file tree with code viewer and inspector
+   - **AI Chat** — ask questions about the codebase (requires Gemini)
+   - **README Generator** — generate a formatted README (requires Gemini)
+   - **Insights** — health scores, dependency analysis, structural metrics
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+---
 
-## Deploy on Vercel
+## API
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+All routes are under `/api/v1/`:
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+| Method | Route | Description |
+|---|---|---|
+| POST | `/analyze` | Start analysis (NDJSON stream) |
+| GET | `/analysis/:id` | Get stored analysis result |
+| DELETE | `/analysis/:id` | Delete analysis + cloned repo |
+| POST | `/analysis/:id/summary` | Generate AI summary |
+| POST | `/analysis/:id/chat` | Ask a question |
+| POST | `/analysis/:id/readme` | Generate README |
+| GET | `/analysis/:id/file?path=` | Read file contents |
+
+---
+
+## Project Structure
+
+```
+app/
+  page.tsx                  # Main client app (landing → analyzing → dashboard)
+  layout.tsx                # Root layout with fonts and ThemeProvider
+  privacy/page.tsx          # Privacy policy
+  terms/page.tsx            # Terms of service
+  api/v1/                   # All API routes
+components/                 # 21 React components + 4 UI primitives
+  landing-page.tsx          # Animated landing with typing terminal, dot grid
+  dashboard.tsx             # Dashboard layout with sidebar routing
+  sidebar.tsx               # Navigation + theme toggle + mobile overlay
+  structure-view.tsx        # 3-pane file explorer + code viewer
+  chat-view.tsx             # AI chat UI
+  readme-view.tsx           # README preview/raw/copy/generate
+  bg-glow.tsx               # Theme-aware background gradient
+  cursor-dots.tsx           # Interactive canvas dot grid
+  typing-terminal.tsx       # Typewriter terminal animation
+  theme-provider.tsx        # Dark/light context + localStorage
+services/                   # 7 backend services
+  analysis.service.ts       # Pipeline orchestrator + store + pruning
+  github.service.ts         # Clone, validate, metadata, cleanup
+  ai.service.ts             # Gemini integration
+  file.service.ts           # File walk, read, count
+  framework.service.ts      # Config-file-based framework detection
+  language.service.ts       # Extension-based language detection
+  repositoryIndex.service.ts # Keyword index for AI chat
+```
+
+---
+
+## License
+
+MIT
