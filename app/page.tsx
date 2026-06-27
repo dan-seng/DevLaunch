@@ -9,12 +9,30 @@ import { Dashboard } from "@/components/dashboard";
 import { LandingPage } from "@/components/landing-page";
 import { useLocalStorage } from "@/hooks/use-local-storage";
 
+interface ChatSession {
+  id: string;
+  label: string;
+  messages: { from: string; text: string }[];
+}
+
 const INITIAL_MESSAGES = [
   {
     from: "AI",
     text: "Ask me where a feature lives, which files matter, or how this repository is structured.",
   },
 ];
+
+function generateSessionId(): string {
+  return `session_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+}
+
+function makeSession(messages?: { from: string; text: string }[]): ChatSession {
+  return {
+    id: generateSessionId(),
+    label: "",
+    messages: messages ?? INITIAL_MESSAGES,
+  };
+}
 
 export default function DevLaunchApp() {
   const [appState, setAppState, hydrated] = useLocalStorage<AppState>("appState", "landing");
@@ -25,7 +43,38 @@ export default function DevLaunchApp() {
   const [analysisError, setAnalysisError] = useState("");
   const [chatInput, setChatInput] = useState("");
   const [chatLoading, setChatLoading] = useState(false);
-  const [messages, setMessages] = useLocalStorage<{ from: string; text: string }[]>("messages", INITIAL_MESSAGES);
+  const [chatSessions, setChatSessions] = useLocalStorage<ChatSession[]>("chatSessions", [makeSession()]);
+
+  const activeSession = chatSessions[0];
+  const messages = activeSession?.messages ?? INITIAL_MESSAGES;
+
+  function updateActiveMessages(updater: (prev: { from: string; text: string }[]) => { from: string; text: string }[]) {
+    setChatSessions((prev) => {
+      if (prev.length === 0) return [makeSession(updater([]))];
+      const updated = { ...prev[0], messages: updater(prev[0].messages) };
+      return [updated, ...prev.slice(1)];
+    });
+  }
+
+  function onNewSession() {
+    setChatSessions((prev) => [
+      makeSession(),
+      ...prev.map((s) => ({
+        ...s,
+        label: s.label || s.messages.find((m) => m.from === "You")?.text.slice(0, 40) || "Chat",
+      })),
+    ]);
+  }
+
+  function handleSelectSession(id: string) {
+    setChatSessions((prev) => {
+      const idx = prev.findIndex((s) => s.id === id);
+      if (idx <= 0) return prev;
+      const session = { ...prev[idx] };
+      const rest = prev.filter((_, i) => i !== idx);
+      return [session, ...rest];
+    });
+  }
 
   const startAnalysis = useCallback(async (url?: string) => {
     const targetUrl = url || repoUrl;
