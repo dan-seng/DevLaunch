@@ -165,12 +165,12 @@ export default function DevLaunchApp() {
     setAppState("landing");
     setAnalysisResult(null);
     setAnalysisError("");
-    setMessages(INITIAL_MESSAGES);
+    setChatSessions([makeSession()]);
     setChatInput("");
     if (typeof window !== "undefined") {
       window.localStorage.removeItem("appState");
       window.localStorage.removeItem("analysisResult");
-      window.localStorage.removeItem("messages");
+      window.localStorage.removeItem("chatSessions");
       window.localStorage.removeItem("activeView");
     }
   }
@@ -180,7 +180,7 @@ export default function DevLaunchApp() {
     const question = chatInput.trim();
     if (!question || !analysisResult) return;
 
-    setMessages((current) => [
+    updateActiveMessages((current) => [
       ...current,
       { from: "You", text: question },
     ]);
@@ -200,13 +200,13 @@ export default function DevLaunchApp() {
       }
 
       const data = await res.json();
-      setMessages((current) => [
+      updateActiveMessages((current) => [
         ...current,
         { from: "AI", text: data.answer },
       ]);
     } catch (err) {
       const message = err instanceof Error ? err.message : "Chat failed";
-      setMessages((current) => [
+      updateActiveMessages((current) => [
         ...current,
         { from: "AI", text: `Error: ${message}` },
       ]);
@@ -245,6 +245,9 @@ export default function DevLaunchApp() {
         setChatInput={setChatInput}
         askQuestion={askQuestion}
         chatLoading={chatLoading}
+        chatSessions={chatSessions}
+        onNewSession={onNewSession}
+        onSelectSession={handleSelectSession}
       />
     );
   }
