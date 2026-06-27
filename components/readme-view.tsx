@@ -1,15 +1,15 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { Copy, Download, RefreshCw, Eye, Code2 } from "lucide-react";
+import { useState } from "react";
+import { Copy, Download, RefreshCw, Eye, Code2, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { GlassPanel } from "./glass-panel";
 import { MarkdownRenderer } from "./markdown-renderer";
 import type { AnalysisResult } from "@/lib/analysis-types";
 
 export function ReadmeView({ analysisResult }: { analysisResult: AnalysisResult }) {
-  const [markdown, setMarkdown] = useState("");
-  const [loading, setLoading] = useState(true);
+  const [markdown, setMarkdown] = useState(analysisResult.readme || "");
+  const [loading, setLoading] = useState(false);
   const [mode, setMode] = useState<"preview" | "raw">("preview");
 
   async function fetchReadme() {
@@ -36,8 +36,6 @@ export function ReadmeView({ analysisResult }: { analysisResult: AnalysisResult 
     }
   }
 
-  useEffect(() => { fetchReadme(); }, [analysisResult.analysisId]);
-
   return (
     <GlassPanel className="border border-outline-variant">
       <div className="flex flex-col items-start justify-between gap-4 border-b border-outline-variant bg-surface-container-high px-6 py-3 md:flex-row md:items-center">
@@ -45,51 +43,60 @@ export function ReadmeView({ analysisResult }: { analysisResult: AnalysisResult 
           README.md
         </span>
         <div className="flex items-center gap-2">
-          <div className="flex overflow-hidden rounded-lg border border-outline-variant/50 bg-surface-container/80 p-0.5">
-            <button
-              onClick={() => setMode("preview")}
-              className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-all ${
-                mode === "preview"
-                  ? "bg-on-surface text-surface"
-                  : "text-on-surface-variant hover:text-on-surface"
-              }`}
-            >
-              <Eye size={14} />
-              Preview
-            </button>
-            <button
-              onClick={() => setMode("raw")}
-              className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-all ${
-                mode === "raw"
-                  ? "bg-on-surface text-surface"
-                  : "text-on-surface-variant hover:text-on-surface"
-              }`}
-            >
-              <Code2 size={14} />
-              Raw
-            </button>
-          </div>
-          <div className="w-px h-5 bg-outline-variant/50" />
-          <Button variant="outline" size="sm" onClick={() => navigator.clipboard.writeText(markdown)}>
-            <Copy size={14} />
-            Copy
-          </Button>
-          <Button size="sm" onClick={() => {
-            const blob = new Blob([markdown], { type: "text/markdown" });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement("a");
-            a.href = url;
-            a.download = "README.md";
-            a.click();
-            URL.revokeObjectURL(url);
-          }}>
-            <Download size={14} />
-            Download
-          </Button>
-          <Button variant="outline" size="sm" onClick={fetchReadme} disabled={loading}>
-            <RefreshCw size={14} />
-            Regenerate
-          </Button>
+          {markdown ? (
+            <>
+              <div className="flex overflow-hidden rounded-lg border border-outline-variant/50 bg-surface-container/80 p-0.5">
+                <button
+                  onClick={() => setMode("preview")}
+                  className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-all ${
+                    mode === "preview"
+                      ? "bg-on-surface text-surface"
+                      : "text-on-surface-variant hover:text-on-surface"
+                  }`}
+                >
+                  <Eye size={14} />
+                  Preview
+                </button>
+                <button
+                  onClick={() => setMode("raw")}
+                  className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-all ${
+                    mode === "raw"
+                      ? "bg-on-surface text-surface"
+                      : "text-on-surface-variant hover:text-on-surface"
+                  }`}
+                >
+                  <Code2 size={14} />
+                  Raw
+                </button>
+              </div>
+              <div className="w-px h-5 bg-outline-variant/50" />
+              <Button variant="outline" size="sm" onClick={() => navigator.clipboard.writeText(markdown)}>
+                <Copy size={14} />
+                Copy
+              </Button>
+              <Button size="sm" onClick={() => {
+                const blob = new Blob([markdown], { type: "text/markdown" });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = url;
+                a.download = "README.md";
+                a.click();
+                URL.revokeObjectURL(url);
+              }}>
+                <Download size={14} />
+                Download
+              </Button>
+              <Button variant="outline" size="sm" onClick={fetchReadme} disabled={loading}>
+                <RefreshCw size={14} />
+                Regenerate
+              </Button>
+            </>
+          ) : (
+            <Button size="sm" onClick={fetchReadme} disabled={loading}>
+              <Sparkles size={14} className={loading ? "animate-spin" : ""} />
+              {loading ? "Generating..." : "Generate README"}
+            </Button>
+          )}
         </div>
       </div>
       {loading ? (
@@ -109,11 +116,12 @@ export function ReadmeView({ analysisResult }: { analysisResult: AnalysisResult 
             {markdown}
           </pre>
         )
-      ) : (
-        <div className="flex items-center justify-center p-16">
-          <p className="text-sm text-on-surface-variant/50 font-mono">No content generated.</p>
+      ) : !loading ? (
+        <div className="flex flex-col items-center justify-center gap-4 p-16 text-on-surface-variant/50">
+          <Code2 size={32} className="text-on-surface-variant/30" />
+          <p className="text-sm font-mono">Click &quot;Generate README&quot; to create a project README with AI.</p>
         </div>
-      )}
+      ) : null}
     </GlassPanel>
   );
 }
