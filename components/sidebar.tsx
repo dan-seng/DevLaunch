@@ -1,10 +1,12 @@
 "use client";
 
+import { useState } from "react";
 import { Settings, HelpCircle, Sun, Moon, X } from "lucide-react";
 import { LogoMark } from "./logo-mark";
 import { views } from "@/data/views";
 import type { DashboardView } from "@/data/types";
 import { useTheme } from "./theme-provider";
+import { SettingsModal } from "./settings-modal";
 
 export function Sidebar({
   activeView,
@@ -18,6 +20,7 @@ export function Sidebar({
   onMobileClose?: () => void;
 }) {
   const { theme, toggle } = useTheme();
+  const [settingsOpen, setSettingsOpen] = useState(false);
 
   const inner = (
     <>
@@ -63,14 +66,19 @@ export function Sidebar({
           {theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
           <span>{theme === "dark" ? "Light Mode" : "Dark Mode"}</span>
         </button>
-        <button className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-on-surface-variant transition-all hover:bg-overlay hover:text-on-surface">
+        <button onClick={() => setSettingsOpen(true)} className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-on-surface-variant transition-all hover:bg-overlay hover:text-on-surface">
           <Settings size={18} />
           <span>Settings</span>
         </button>
-        <button className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-on-surface-variant transition-all hover:bg-overlay hover:text-on-surface">
+        <a
+          href="https://github.com/dan-seng/DevLaunch/issues"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-on-surface-variant transition-all hover:bg-overlay hover:text-on-surface"
+        >
           <HelpCircle size={18} />
           <span>Support</span>
-        </button>
+        </a>
       </div>
     </>
   );
@@ -100,6 +108,8 @@ export function Sidebar({
           </aside>
         </div>
       )}
+
+      <SettingsModal open={settingsOpen} onClose={() => setSettingsOpen(false)} />
     </>
   );
 }
