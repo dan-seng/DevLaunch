@@ -56,12 +56,20 @@ export function ChatView({
   setChatInput,
   askQuestion,
   chatLoading,
+  sessions,
+  activeSessionId,
+  onNewSession,
+  onSelectSession,
 }: {
   messages: { from: string; text: string }[];
   chatInput: string;
   setChatInput: (value: string) => void;
   askQuestion: (event: FormEvent<HTMLFormElement>) => void;
   chatLoading: boolean;
+  sessions: { id: string; label: string; messages: { from: string; text: string }[] }[];
+  activeSessionId: string;
+  onNewSession: () => void;
+  onSelectSession: (id: string) => void;
 }) {
   const bottomRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -120,15 +128,30 @@ export function ChatView({
       <div className="flex flex-1 overflow-hidden">
         <div className="hidden w-72 shrink-0 flex-col border-r border-outline-variant/50 bg-background md:flex">
           <div className="border-b border-outline-variant/30 p-4">
-            <button className="flex w-full items-center justify-center gap-2 rounded-lg border border-outline-variant/50 bg-overlay py-2.5 text-sm text-on-surface/80 transition-all hover:bg-surface-container active:scale-[0.98]">
+            <button
+              onClick={onNewSession}
+              className="flex w-full items-center justify-center gap-2 rounded-lg border border-outline-variant/50 bg-overlay py-2.5 text-sm text-on-surface/80 transition-all hover:bg-surface-container active:scale-[0.98]"
+            >
               <Plus size={16} />
               <span>New Conversation</span>
             </button>
           </div>
-          <div className="flex items-center justify-center flex-1 p-6">
-            <p className="text-center text-xs text-on-surface-variant/50 font-mono">
-              Thread history coming soon
-            </p>
+          <div className="flex-1 overflow-y-auto p-2 space-y-1">
+            {sessions.map((session) => (
+              <button
+                key={session.id}
+                onClick={() => onSelectSession(session.id)}
+                className={`w-full rounded-lg px-3 py-2.5 text-left text-xs transition-all ${
+                  session.id === activeSessionId
+                    ? "bg-overlay font-semibold text-on-surface"
+                    : "text-on-surface-variant hover:bg-overlay hover:text-on-surface"
+                }`}
+              >
+                <span className="line-clamp-1 leading-relaxed">
+                  {session.label || "New conversation"}
+                </span>
+              </button>
+            ))}
           </div>
         </div>
 
