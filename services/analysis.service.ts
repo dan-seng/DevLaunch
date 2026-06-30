@@ -376,13 +376,13 @@ export async function generateSummaryForAnalysis(analysisId: string, apiKey?: st
     };
   }
 
-  const summary = await generateSummary(context);
+  const summary = await generateSummary(context, apiKey);
   analysis.summary = summary;
   setInStore(analysisId, analysis);
   return summary;
 }
 
-export async function generateProjectReadme(analysisId: string): Promise<string> {
+export async function generateProjectReadme(analysisId: string, apiKey?: string): Promise<string> {
   const analysis = getFromStore(analysisId);
   if (!analysis) throw new Error("Analysis not found");
 
@@ -399,7 +399,7 @@ export async function generateProjectReadme(analysisId: string): Promise<string>
     dependencies: analysis.dependencies,
     entryPoints: analysis.entryPoints,
     statistics: analysis.statistics,
-  });
+  }, apiKey);
 
   analysis.readme = readme;
   setInStore(analysisId, analysis);
