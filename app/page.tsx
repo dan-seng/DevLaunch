@@ -188,9 +188,13 @@ export default function DevLaunchApp() {
     setChatLoading(true);
 
     try {
+      const apiKey = localStorage.getItem("devlaunch-gemini-key");
       const res = await fetch(`/api/v1/analysis/${analysisResult.analysisId}/chat`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          ...(apiKey ? { "x-api-key": apiKey } : {}),
+        },
         body: JSON.stringify({ question }),
       });
 
