@@ -9,12 +9,13 @@ export async function POST(
     const { id } = await params;
     const body = await request.json();
     const { question } = body;
+    const apiKey = request.headers.get("x-api-key") || undefined;
 
     if (!question || typeof question !== "string") {
       return NextResponse.json({ error: "Missing or invalid 'question' field" }, { status: 400 });
     }
 
-    const answer = await askQuestion(id, question);
+    const answer = await askQuestion(id, question, apiKey);
 
     return NextResponse.json({ answer }, { status: 200 });
   } catch (error) {
