@@ -14,6 +14,9 @@ import {
   Sun,
   Moon,
   Star,
+  KeyRound,
+  Zap,
+  ShieldCheck,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { LogoMark } from "./logo-mark";
@@ -330,6 +333,116 @@ export function LandingPage({
                 </p>
               </motion.div>
             ))}
+          </div>
+        </section>
+
+        <section className="mx-auto max-w-[1440px] px-5 pb-28 md:px-8">
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.3 }}
+            transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+          >
+            <div
+              className="group relative mx-auto max-w-6xl cursor-pointer overflow-hidden rounded-[20px] border-2 border-outline-variant/60 bg-surface-container-low shadow-xl shadow-on-surface/5 transition-shadow duration-300 hover:shadow-2xl hover:shadow-on-surface/10"
+              onMouseEnter={(e) => {
+                const vid = e.currentTarget.querySelector("video");
+                if (vid) vid.play();
+              }}
+              onMouseLeave={(e) => {
+                const vid = e.currentTarget.querySelector("video");
+                if (vid) { vid.pause(); vid.currentTime = 0; }
+              }}
+            >
+              <video
+                src="/assets/vid.mp4"
+                muted
+                loop
+                playsInline
+                preload="metadata"
+                className="aspect-video w-full object-contain"
+              />
+            </div>
+          </motion.div>
+        </section>
+
+        <section className="mx-auto max-w-[1440px] px-5 pb-28 md:px-8">
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.3 }}
+            transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+            className="mb-12 flex items-center justify-between"
+          >
+            <h2 className="text-lg font-bold tracking-tight text-on-surface">
+              API Keys & Free Tier
+            </h2>
+            <div className="mx-6 h-px flex-1 bg-outline-variant/30" />
+          </motion.div>
+          <div className="grid gap-5 md:grid-cols-3">
+            <motion.div
+              initial={{ opacity: 0, y: 24 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.2 }}
+              transition={{ duration: 0.5, delay: 0, ease: [0.16, 1, 0.3, 1] }}
+              className="rounded-2xl border border-outline-variant/50 bg-surface-container-low p-7"
+            >
+              <div className="mb-4 flex size-10 items-center justify-center rounded-xl bg-surface-container-high text-on-surface-variant">
+                <Zap size={22} />
+              </div>
+              <h3 className="mb-2 text-base font-bold tracking-tight text-on-surface">
+                Scanning is always free
+              </h3>
+              <p className="text-sm leading-relaxed text-on-surface-variant">
+                Repository analysis, tech detection, structure maps, and
+                insights — all work without any API key. No limits, no
+                sign-up.
+              </p>
+            </motion.div>
+            <motion.div
+              initial={{ opacity: 0, y: 24 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.2 }}
+              transition={{ duration: 0.5, delay: 0.08, ease: [0.16, 1, 0.3, 1] }}
+              className="rounded-2xl border border-yellow-500/20 bg-yellow-500/[0.04] p-7"
+            >
+              <div className="mb-4 flex size-10 items-center justify-center rounded-xl bg-yellow-500/10 text-yellow-500">
+                <Sparkles size={22} />
+              </div>
+              <h3 className="mb-2 text-base font-bold tracking-tight text-on-surface">
+                AI features — 20 requests/day
+              </h3>
+              <p className="text-sm leading-relaxed text-on-surface-variant">
+                AI summaries, chat, and README generation run on a shared
+                free-tier Gemini key. Limited to 20 requests per day across
+                all users.
+              </p>
+            </motion.div>
+            <motion.div
+              initial={{ opacity: 0, y: 24 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.2 }}
+              transition={{ duration: 0.5, delay: 0.16, ease: [0.16, 1, 0.3, 1] }}
+              className="rounded-2xl border border-primary/20 bg-primary/[0.04] p-7"
+            >
+              <div className="mb-4 flex size-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                <KeyRound size={22} />
+              </div>
+              <h3 className="mb-2 text-base font-bold tracking-tight text-on-surface">
+                Bring your own API key
+              </h3>
+              <p className="text-sm leading-relaxed text-on-surface-variant">
+                Bypass the daily limit by providing your own free Gemini API
+                key. Open the{" "}
+                <strong className="text-on-surface">Settings</strong> panel
+                in the dashboard, paste your key — it stays in your browser,
+                never sent to our servers.
+              </p>
+              <div className="mt-4 flex items-center gap-2 text-xs text-on-surface-variant/70">
+                <ShieldCheck size={13} />
+                Stored locally in your browser
+              </div>
+            </motion.div>
           </div>
         </section>
 
