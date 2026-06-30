@@ -7,7 +7,8 @@ export async function POST(
 ) {
   try {
     const { id } = await params;
-    const summary = await generateSummaryForAnalysis(id);
+    const apiKey = _request.headers.get("x-api-key") || undefined;
+    const summary = await generateSummaryForAnalysis(id, apiKey);
     return NextResponse.json({ summary }, { status: 200 });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Summary generation failed";
