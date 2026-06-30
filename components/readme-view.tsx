@@ -15,8 +15,12 @@ export function ReadmeView({ analysisResult }: { analysisResult: AnalysisResult 
   async function fetchReadme() {
     setLoading(true);
     try {
+      const apiKey = localStorage.getItem("devlaunch-gemini-key");
       const res = await fetch(`/api/v1/analysis/${analysisResult.analysisId}/readme`, {
         method: "POST",
+        headers: {
+          ...(apiKey ? { "x-api-key": apiKey } : {}),
+        },
       });
       if (res.ok) {
         const data = await res.json();
