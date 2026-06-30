@@ -7,7 +7,8 @@ export async function POST(
 ) {
   try {
     const { id } = await params;
-    const markdown = await generateProjectReadme(id);
+    const apiKey = _request.headers.get("x-api-key") || undefined;
+    const markdown = await generateProjectReadme(id, apiKey);
     return NextResponse.json({ markdown }, { status: 200 });
   } catch (error) {
     const message = error instanceof Error ? error.message : "README generation failed";
