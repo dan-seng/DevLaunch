@@ -89,8 +89,12 @@ export function SummaryView({ analysisResult }: { analysisResult: AnalysisResult
   async function fetchSummary() {
     setLoading(true);
     try {
+      const apiKey = localStorage.getItem("devlaunch-gemini-key");
       const res = await fetch(`/api/v1/analysis/${analysisResult.analysisId}/summary`, {
         method: "POST",
+        headers: {
+          ...(apiKey ? { "x-api-key": apiKey } : {}),
+        },
       });
       if (res.ok) {
         const data = await res.json();
