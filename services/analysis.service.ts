@@ -327,6 +327,7 @@ export function pruneOldAnalyses(): number {
 export async function askQuestion(
   analysisId: string,
   question: string,
+  apiKey?: string,
 ): Promise<string> {
   const analysis = getFromStore(analysisId);
   if (!analysis) throw new Error("Analysis not found");
@@ -347,10 +348,10 @@ export async function askQuestion(
     projectName: analysis.projectName,
     languages: analysis.languages,
     frameworks: analysis.frameworks,
-  });
+  }, apiKey);
 }
 
-export async function generateSummaryForAnalysis(analysisId: string): Promise<string> {
+export async function generateSummaryForAnalysis(analysisId: string, apiKey?: string): Promise<string> {
   const analysis = getFromStore(analysisId);
   if (!analysis) throw new Error("Analysis not found");
 
