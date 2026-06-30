@@ -1,22 +1,27 @@
 import { GoogleGenAI } from "@google/genai";
 
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || "" });
-
 function buildContext(metadata: Record<string, unknown>) {
   return JSON.stringify(metadata, null, 2);
 }
 
-export async function generateSummary(metadata: {
-  projectName: string;
-  languages: string[];
-  frameworks: Record<string, string | null>;
-  files: number;
-  folders: number;
-  linesOfCode: number;
-  topFolders: string[];
-  entryPoints: string[];
-  dependencies: string[];
-}): Promise<string> {
+function getClient(apiKey?: string): GoogleGenAI {
+  return new GoogleGenAI({ apiKey: apiKey || process.env.GEMINI_API_KEY || "" });
+}
+
+export async function generateSummary(
+  metadata: {
+    projectName: string;
+    languages: string[];
+    frameworks: Record<string, string | null>;
+    files: number;
+    folders: number;
+    linesOfCode: number;
+    topFolders: string[];
+    entryPoints: string[];
+    dependencies: string[];
+  },
+  apiKey?: string,
+): Promise<string> {
   const context = buildContext(metadata);
 
   const prompt = `You are an honest, critical codebase reviewer. Given the following structured metadata about a GitHub repository, write a balanced assessment — what it does, what it does well, and where it falls short. Do NOT inflate praise. Be direct about weak spots.
@@ -31,6 +36,7 @@ Guidelines:
 - Base everything ONLY on the data provided. Do not invent information.
 - If a field is null or empty, note its absence as a concern rather than skipping it.`;
 
+  const ai = getClient(apiKey);
   const response = await ai.models.generateContent({
     model: "gemini-2.5-flash",
     contents: prompt,
@@ -47,6 +53,7 @@ export async function chatWithRepo(
     languages: string[];
     frameworks: Record<string, string | null>;
   },
+  apiKey?: string,
 ): Promise<string> {
   const fileContext = contextFiles
     .map((f) => `--- ${f.path} ---\n${f.content.slice(0, 4000)}`)
@@ -68,6 +75,7 @@ User Question: ${question}
 
 Provide a specific answer referencing the actual files and code patterns found. Include file paths in your answer.`;
 
+  const ai = getClient(apiKey);
   const response = await ai.models.generateContent({
     model: "gemini-2.5-flash",
     contents: prompt,
@@ -76,16 +84,19 @@ Provide a specific answer referencing the actual files and code patterns found. 
   return response.text || "";
 }
 
-export async function generateReadme(metadata: {
-  projectName: string;
-  description: string;
-  languages: string[];
-  frameworks: Record<string, string | null>;
-  structure: string;
-  dependencies: string[];
-  entryPoints: string[];
-  statistics: { files: number; folders: number; linesOfCode: number };
-}): Promise<string> {
+export async function generateReadme(
+  metadata: {
+    projectName: string;
+    description: string;
+    languages: string[];
+    frameworks: Record<string, string | null>;
+    structure: string;
+    dependencies: string[];
+    entryPoints: string[];
+    statistics: { files: number; folders: number; linesOfCode: number };
+  },
+  apiKey?: string,
+): Promise<string> {
   const context = buildContext(metadata);
 
   const prompt = `You are a documentation generator. Given the following repository metadata, generate a professional README.md in Markdown.
@@ -103,6 +114,7 @@ Include these sections:
 
 Use the actual data provided. Do not invent features or commands.`;
 
+  const ai = getClient(apiKey);
   const response = await ai.models.generateContent({
     model: "gemini-2.5-flash",
     contents: prompt,
