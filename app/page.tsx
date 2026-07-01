@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useCallback, useState } from "react";
+import { FormEvent, useCallback, useEffect, useState } from "react";
 import type { AnalysisResult } from "@/lib/analysis-types";
 import type { AppState, DashboardView } from "@/data/types";
 import { loadingSteps } from "@/data/loading-steps";
@@ -75,6 +75,17 @@ export default function DevLaunchApp() {
       return [session, ...rest];
     });
   }
+
+  // Reset stale states on hydration — analyzing can't survive a refresh
+  useEffect(() => {
+    if (hydrated) {
+      if (appState === "analyzing") {
+        setAppState("landing");
+      } else if (appState === "dashboard" && !analysisResult) {
+        setAppState("landing");
+      }
+    }
+  }, [hydrated]);
 
   const startAnalysis = useCallback(async (url?: string) => {
     const targetUrl = url || repoUrl;
