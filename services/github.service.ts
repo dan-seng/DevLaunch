@@ -7,7 +7,11 @@ const TEMP_BASE = join(process.cwd(), "temp");
 const MAX_SIZE = 200 * 1024 * 1024;
 
 function ensureTempDir() {
-  if (!existsSync(TEMP_BASE)) mkdirSync(TEMP_BASE, { recursive: true });
+  try {
+    if (!existsSync(TEMP_BASE)) mkdirSync(TEMP_BASE, { recursive: true });
+  } catch {
+    // serverless environments (Vercel) have a read-only filesystem
+  }
 }
 
 function parseRepoUrl(url: string): { owner: string; repo: string } | null {

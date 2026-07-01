@@ -407,7 +407,12 @@ export async function generateProjectReadme(analysisId: string, apiKey?: string)
 }
 
 // Run initial prune on server start, then every hour
+// Only in Node.js environments with writable filesystem (not Vercel serverless)
 if (typeof window === "undefined" && process.env.NEXT_RUNTIME === "nodejs") {
-  pruneOldAnalyses();
-  setInterval(pruneOldAnalyses, PRUNE_AGE_MS);
+  try {
+    pruneOldAnalyses();
+    setInterval(pruneOldAnalyses, PRUNE_AGE_MS);
+  } catch {
+    // serverless environments (Vercel) have a read-only filesystem
+  }
 }
