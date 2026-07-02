@@ -4,7 +4,7 @@
 
 body {
   cursor:
-    url("/cursor.png") 14 14,
+    var(--cursor-url, url("/light-cursor.png") 14 14),
     auto;
 }
 
@@ -242,6 +242,7 @@ pre[class*="language-"] {
   --footer-hover: #87f783;
   --selection-bg: rgb(0 0 0 / 0.12);
   --selection-text: inherit;
+  --cursor-url: url("/cursor.png") 14 14;
 }
 
 [data-theme="light"] pre,
