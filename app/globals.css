@@ -35,6 +35,8 @@ body {
   --dot-lit: rgba(255, 255, 255, 0.45);
   --shadow-glow: rgba(255, 255, 255, 0.15);
   --footer-hover: #f7f383;
+  --selection-bg: rgb(255 255 255 / 0.18);
+  --selection-text: inherit;
 }
 
 @theme inline {
@@ -81,7 +83,8 @@ body {
 }
 
 ::selection {
-  background: rgb(255 255 255 / 0.18);
+  background: var(--selection-bg, rgb(255 255 255 / 0.18));
+  color: var(--selection-text, inherit);
 }
 
 button,
@@ -237,6 +240,8 @@ pre[class*="language-"] {
   --dot-lit: rgba(0, 0, 0, 0.35);
   --shadow-glow: rgba(0, 0, 0, 0.15);
   --footer-hover: #87f783;
+  --selection-bg: rgb(0 0 0 / 0.12);
+  --selection-text: inherit;
 }
 
 [data-theme="light"] pre,
