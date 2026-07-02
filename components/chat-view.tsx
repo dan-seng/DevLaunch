@@ -1,7 +1,7 @@
 "use client";
 
 import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Plus, Zap, ThumbsUp, ThumbsDown, RefreshCw, Paperclip, Code, Mic, ArrowUp, Copy, Check } from "lucide-react";
+import { Plus, Zap, ThumbsUp, ThumbsDown, RefreshCw, Paperclip, Code, Mic, ArrowUp, Square, Copy, Check } from "lucide-react";
 import { MarkdownRenderer } from "./markdown-renderer";
 
 function TypingAnimation({ text, onDone }: { text: string; onDone: () => void }) {
@@ -60,6 +60,7 @@ export function ChatView({
   activeSessionId,
   onNewSession,
   onSelectSession,
+  onStop,
 }: {
   messages: { from: string; text: string }[];
   chatInput: string;
@@ -70,6 +71,7 @@ export function ChatView({
   activeSessionId: string;
   onNewSession: () => void;
   onSelectSession: (id: string) => void;
+  onStop?: () => void;
 }) {
   const bottomRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -282,11 +284,12 @@ export function ChatView({
                   <div className="flex items-center gap-3">
                     <span className="pr-3 text-[10px] font-mono text-on-surface-variant/50">Markdown</span>
                     <button
-                      type="submit"
-                      disabled={chatLoading || !chatInput.trim()}
+                      type={chatLoading ? "button" : "submit"}
+                      onClick={chatLoading ? onStop : undefined}
+                      disabled={!chatLoading && !chatInput.trim()}
                       className="flex size-9 items-center justify-center rounded-xl bg-on-surface text-surface shadow-lg transition-all hover:brightness-90 active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed"
                     >
-                      <ArrowUp size={16} />
+                      {chatLoading ? <Square size={14} /> : <ArrowUp size={16} />}
                     </button>
                   </div>
                 </div>

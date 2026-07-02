@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useCallback, useEffect, useState } from "react";
+import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
 import type { AnalysisResult } from "@/lib/analysis-types";
 import type { AppState, DashboardView } from "@/data/types";
 import { loadingSteps } from "@/data/loading-steps";
@@ -43,6 +43,7 @@ export default function DevLaunchApp() {
   const [analysisError, setAnalysisError] = useState("");
   const [chatInput, setChatInput] = useState("");
   const [chatLoading, setChatLoading] = useState(false);
+  const abortRef = useRef<AbortController | null>(null);
   const [chatSessions, setChatSessions] = useLocalStorage<ChatSession[]>("chatSessions", [makeSession()]);
 
   const activeSession = chatSessions[0];
@@ -198,6 +199,8 @@ export default function DevLaunchApp() {
     setChatInput("");
     setChatLoading(true);
 
+    abortRef.current = new AbortController();
+
     try {
       const apiKey = localStorage.getItem("devlaunch-gemini-key");
       const res = await fetch(`/api/v1/analysis/${analysisResult.analysisId}/chat`, {
@@ -207,6 +210,7 @@ export default function DevLaunchApp() {
           ...(apiKey ? { "x-api-key": apiKey } : {}),
         },
         body: JSON.stringify({ question }),
+        signal: abortRef.current.signal,
       });
 
       if (!res.ok) {
@@ -227,7 +231,14 @@ export default function DevLaunchApp() {
       ]);
     } finally {
       setChatLoading(false);
+      abortRef.current = null;
     }
+  }
+
+  function onStopChat() {
+    abortRef.current?.abort();
+    abortRef.current = null;
+    setChatLoading(false);
   }
 
   if (!hydrated) {
@@ -244,6 +255,11 @@ export default function DevLaunchApp() {
         progress={Math.round(((step + 1) / loadingSteps.length) * 100)}
         step={step}
         error={analysisError}
+        onCancel={() => {
+          setStep(0);
+          setAnalysisError("");
+          setAppState("landing");
+        }}
       />
     );
   }
@@ -263,6 +279,7 @@ export default function DevLaunchApp() {
         chatSessions={chatSessions}
         onNewSession={onNewSession}
         onSelectSession={handleSelectSession}
+        onStop={onStopChat}
       />
     );
   }

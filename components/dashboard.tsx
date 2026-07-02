@@ -26,6 +26,7 @@ export function Dashboard({
   chatSessions,
   onNewSession,
   onSelectSession,
+  onStop,
 }: {
   analysisResult: AnalysisResult;
   activeView: DashboardView;
@@ -39,6 +40,7 @@ export function Dashboard({
   chatSessions: { id: string; label: string; messages: { from: string; text: string }[] }[];
   onNewSession: () => void;
   onSelectSession: (id: string) => void;
+  onStop: () => void;
 }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const isChat = activeView === "AI Chat";
@@ -65,6 +67,7 @@ export function Dashboard({
               activeSessionId={chatSessions[0]?.id ?? ""}
               onNewSession={onNewSession}
               onSelectSession={onSelectSession}
+              onStop={onStop}
             />
           </div>
         ) : (
