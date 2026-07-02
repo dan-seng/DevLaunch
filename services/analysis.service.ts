@@ -344,6 +344,19 @@ export async function askQuestion(
     }
   }
 
+  // If no files matched the keyword query, fall back to first N files
+  if (contextFiles.length === 0) {
+    const allPaths: string[] = [];
+    collectFilePaths(analysis.structure, allPaths);
+    for (const filePath of allPaths.slice(0, 10)) {
+      const fullPath = join(analysis.repoPath, filePath);
+      const content = readFile(fullPath);
+      if (content) {
+        contextFiles.push({ path: filePath, content });
+      }
+    }
+  }
+
   return chatWithRepo(question, contextFiles, {
     projectName: analysis.projectName,
     languages: analysis.languages,
