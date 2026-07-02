@@ -1,21 +1,26 @@
 "use client"
 
-import { Check, RefreshCw } from "lucide-react"
+import { Check, RefreshCw, ArrowLeft } from "lucide-react"
 import { LogoMark } from "./logo-mark"
 import { loadingSteps } from "@/data/loading-steps"
 
-export function AnalyzingScreen({ progress, step, error }: { progress: number; step: number; error?: string }) {
+export function AnalyzingScreen({ progress, step, error, onCancel }: { progress: number; step: number; error?: string; onCancel?: () => void }) {
   return (
     <main className="grid min-h-screen place-items-center overflow-hidden bg-background px-4 text-on-surface">
       <div className="absolute left-[-10%] top-[-10%] size-[40%] rounded-full bg-overlay blur-[120px]" />
       <div className="absolute bottom-[-10%] right-[-10%] size-[40%] rounded-full bg-overlay blur-[120px]" />
       <div className="relative z-10 w-full max-w-[480px] animate-[fade-up_0.45s_ease-out]">
-        <div className="mb-8 flex flex-col items-center space-y-4">
-          <div className="size-16">
+        <div className="mb-6 flex items-center justify-between">
+          <button
+            onClick={onCancel}
+            className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-on-surface-variant transition-all hover:bg-overlay hover:text-on-surface"
+          >
+            <ArrowLeft size={16} />
+            Back
+          </button>
+          <div className="h-8 w-8">
             <LogoMark />
           </div>
-          <h1 className="text-2xl font-bold tracking-tight text-on-surface">DevLaunch</h1>
-          <p className="text-sm text-on-surface-variant/70 font-mono">AI Analysis Engine</p>
         </div>
         <div className="overflow-hidden rounded-xl border border-outline-variant bg-surface-container-high/40 shadow-2xl backdrop-blur-xl">
           <div className="flex items-end justify-between border-b border-outline-variant bg-surface-container-high/60 p-5">

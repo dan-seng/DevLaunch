@@ -1,6 +1,6 @@
 "use client";
 
-import { Menu, ChevronRight, Search, Bell, RefreshCw } from "lucide-react";
+import { Menu, ChevronRight, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { DashboardView } from "@/data/types";
 
@@ -29,13 +29,6 @@ export function TopBar({
         </div>
       </div>
       <div className="flex items-center gap-3">
-        <button className="p-1.5 text-on-surface-variant transition-colors hover:text-on-surface">
-          <Search size={16} />
-        </button>
-        <button className="relative p-1.5 text-on-surface-variant transition-colors hover:text-on-surface">
-          <Bell size={16} />
-          <span className="absolute right-1.5 top-1.5 size-1.5 rounded-full bg-on-surface" />
-        </button>
         <div className="mx-1 h-5 w-px bg-outline-variant" />
         <Button variant="ghost" size="sm" onClick={onNewScan} className="text-xs">
           <RefreshCw size={13} />
