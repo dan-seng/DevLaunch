@@ -86,7 +86,7 @@ export async function cloneRepository(url: string, customId?: string): Promise<{
   const treeRes = await githubFetch(treeUrl);
   const tree = await treeRes.json() as { tree: Array<{ path: string; mode: string; type: string; sha: string; size?: number }> };
 
-  // Download each file via raw blob API
+  // Download files via raw.githubusercontent.com CDN (no rate limit)
   const downloaded = { files: 0, bytes: 0 };
   const MAX_FILES = 5000;
   const MAX_BYTES = MAX_SIZE;
@@ -101,13 +101,7 @@ export async function cloneRepository(url: string, customId?: string): Promise<{
 
     try {
       const contentRes = await fetch(
-        `https://api.github.com/repos/${parsed.owner}/${parsed.repo}/git/blobs/${entry.sha}`,
-        {
-          headers: {
-            Accept: "application/vnd.github.raw+json",
-            ...(process.env.GITHUB_TOKEN ? { Authorization: `Bearer ${process.env.GITHUB_TOKEN}` } : {}),
-          },
-        },
+        `https://raw.githubusercontent.com/${parsed.owner}/${parsed.repo}/${branch}/${entry.path}`,
       );
       if (!contentRes.ok) continue;
 
