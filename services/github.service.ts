@@ -1,9 +1,10 @@
-import simpleGit from "simple-git";
-import { existsSync, mkdirSync, rmSync } from "fs";
-import { join } from "path";
+import { existsSync, mkdirSync, rmSync, writeFileSync } from "fs";
+import { join, dirname } from "path";
 import type { RepoMetadata } from "@/lib/analysis-types";
 
-const TEMP_BASE = join(process.cwd(), "temp");
+const TEMP_BASE = process.env.VERCEL
+  ? "/tmp/devlaunch"
+  : join(process.cwd(), "temp");
 const MAX_SIZE = 200 * 1024 * 1024;
 
 function ensureTempDir() {
@@ -12,6 +13,22 @@ function ensureTempDir() {
   } catch {
     // serverless environments (Vercel) have a read-only filesystem
   }
+}
+
+async function githubFetch(url: string): Promise<Response> {
+  const headers: Record<string, string> = {
+    Accept: "application/vnd.github.v3+json",
+  };
+  const token = process.env.GITHUB_TOKEN;
+  if (token) headers.Authorization = `Bearer ${token}`;
+  const res = await fetch(url, { headers });
+  if (!res.ok) {
+    if (res.status === 403 && !token) throw new Error("GitHub API rate limit. Set GITHUB_TOKEN for higher limits, or try again later.");
+    if (res.status === 403) throw new Error("GitHub API rate limited. Try again later.");
+    if (res.status === 404) throw new Error("Repository or file not found.");
+    throw new Error(`GitHub API error: ${res.status}`);
+  }
+  return res;
 }
 
 function parseRepoUrl(url: string): { owner: string; repo: string } | null {
@@ -36,16 +53,7 @@ export async function getRepositoryMetadata(url: string): Promise<RepoMetadata> 
   if (!parsed) throw new Error("Invalid repository URL");
 
   const apiUrl = `https://api.github.com/repos/${parsed.owner}/${parsed.repo}`;
-  const res = await fetch(apiUrl, {
-    headers: { Accept: "application/vnd.github.v3+json" },
-  });
-
-  if (!res.ok) {
-    if (res.status === 404) throw new Error("Repository does not exist.");
-    if (res.status === 403) throw new Error("Rate limited by GitHub API. Try again later.");
-    throw new Error("Failed to fetch repository metadata.");
-  }
-
+  const res = await githubFetch(apiUrl);
   const data = await res.json();
   return {
     name: data.name,
@@ -65,12 +73,54 @@ export async function cloneRepository(url: string, customId?: string): Promise<{
 
   const folderName = customId || `repo_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
   const clonePath = join(TEMP_BASE, folderName);
+  if (!existsSync(clonePath)) mkdirSync(clonePath, { recursive: true });
 
-  const git = simpleGit();
-  await git.clone(url, clonePath, [
-    "--depth", "1",
-    "--single-branch",
-  ]);
+  // Fetch default branch from repo metadata
+  const metaUrl = `https://api.github.com/repos/${parsed.owner}/${parsed.repo}`;
+  const metaRes = await githubFetch(metaUrl);
+  const meta = await metaRes.json() as { default_branch: string };
+  const branch = meta.default_branch;
+
+  // Get recursive tree
+  const treeUrl = `https://api.github.com/repos/${parsed.owner}/${parsed.repo}/git/trees/${branch}?recursive=1`;
+  const treeRes = await githubFetch(treeUrl);
+  const tree = await treeRes.json() as { tree: Array<{ path: string; mode: string; type: string; sha: string; size?: number }> };
+
+  // Download each file via raw blob API
+  const downloaded = { files: 0, bytes: 0 };
+  const MAX_FILES = 5000;
+  const MAX_BYTES = MAX_SIZE;
+
+  for (const entry of tree.tree) {
+    if (entry.type !== "blob") continue;
+    if (downloaded.files >= MAX_FILES || downloaded.bytes >= MAX_BYTES) break;
+
+    const filePath = join(clonePath, entry.path);
+    const dir = dirname(filePath);
+    if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
+
+    try {
+      const contentRes = await fetch(
+        `https://api.github.com/repos/${parsed.owner}/${parsed.repo}/git/blobs/${entry.sha}`,
+        {
+          headers: {
+            Accept: "application/vnd.github.raw+json",
+            ...(process.env.GITHUB_TOKEN ? { Authorization: `Bearer ${process.env.GITHUB_TOKEN}` } : {}),
+          },
+        },
+      );
+      if (!contentRes.ok) continue;
+
+      const text = await contentRes.text();
+      downloaded.bytes += text.length;
+      if (text.length > 1024 * 1024) continue; // skip files over 1MB
+
+      writeFileSync(filePath, text);
+      downloaded.files++;
+    } catch {
+      // skip unreadable files
+    }
+  }
 
   return { path: clonePath, repoPath: clonePath };
 }
