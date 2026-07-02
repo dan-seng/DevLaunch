@@ -5,7 +5,11 @@ function buildContext(metadata: Record<string, unknown>) {
 }
 
 function getClient(apiKey?: string): GoogleGenAI {
-  return new GoogleGenAI({ apiKey: apiKey || process.env.GEMINI_API_KEY || "" });
+  const key = apiKey || process.env.GEMINI_API_KEY;
+  if (!key) throw new Error(
+    "No Gemini API key configured. Add one via Settings or set the GEMINI_API_KEY environment variable."
+  );
+  return new GoogleGenAI({ apiKey: key });
 }
 
 export async function generateSummary(

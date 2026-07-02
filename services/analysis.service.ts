@@ -1,5 +1,5 @@
 import { join } from "path";
-import { readFileSync, writeFileSync, existsSync, rmSync, readdirSync, statSync } from "fs";
+import { readFileSync, writeFileSync, existsSync, rmSync, readdirSync, statSync, mkdirSync } from "fs";
 import { validateRepository, cloneRepository, getRepositoryMetadata, deleteRepository } from "./github.service";
 import { walkDirectory, countFiles, countLinesOfCode, readFile } from "./file.service";
 import { detectFramework } from "./framework.service";
@@ -10,12 +10,18 @@ import type { AnalysisResult, FileNode, Insights } from "@/lib/analysis-types";
 
 const ANALYSIS_STORE = new Map<string, AnalysisResult>();
 
+const TEMP_BASE = process.env.VERCEL
+  ? "/tmp/devlaunch"
+  : join(process.cwd(), "temp");
+
 function getStorePath(analysisId: string): string {
-  return join(process.cwd(), "temp", analysisId, ".analysis.json");
+  return join(TEMP_BASE, analysisId, ".analysis.json");
 }
 
 function saveToDisk(analysisId: string, data: AnalysisResult) {
   try {
+    const dir = join(TEMP_BASE, analysisId);
+    if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
     writeFileSync(getStorePath(analysisId), JSON.stringify(data, null, 2));
   } catch { /* skip */ }
 }
@@ -330,7 +336,7 @@ export async function askQuestion(
   apiKey?: string,
 ): Promise<string> {
   const analysis = getFromStore(analysisId);
-  if (!analysis) throw new Error("Analysis not found");
+  if (!analysis) throw new Error("Analysis session expired or not found. Please re-scan the repository.");
 
   // find relevant files via index
   const relevantPaths = repositoryIndexService.query(question);
@@ -366,7 +372,7 @@ export async function askQuestion(
 
 export async function generateSummaryForAnalysis(analysisId: string, apiKey?: string): Promise<string> {
   const analysis = getFromStore(analysisId);
-  if (!analysis) throw new Error("Analysis not found");
+  if (!analysis) throw new Error("Analysis session expired or not found. Please re-scan the repository.");
 
   if (analysis.summary) return analysis.summary;
 
@@ -397,7 +403,7 @@ export async function generateSummaryForAnalysis(analysisId: string, apiKey?: st
 
 export async function generateProjectReadme(analysisId: string, apiKey?: string): Promise<string> {
   const analysis = getFromStore(analysisId);
-  if (!analysis) throw new Error("Analysis not found");
+  if (!analysis) throw new Error("Analysis session expired or not found. Please re-scan the repository.");
 
   if (analysis.readme) return analysis.readme;
 
